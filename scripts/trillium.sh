@@ -3,8 +3,8 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --time=24:00:00
 #SBATCH --job-name=esen_training
-#SBATCH --output=outslurm/slurm-%j.txt
-#SBATCH --error=outslurm/slurm-%j.txt
+#SBATCH --output=/scratch/aburger/outslurm/slurm-%j.txt
+#SBATCH --error=/scratch/aburger/outslurm/slurm-%j.txt
 
 # option	short option	meaning	notes
 # --nodes	-N	number of nodes	Recommended to always include this
