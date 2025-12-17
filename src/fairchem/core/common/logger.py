@@ -8,6 +8,7 @@ LICENSE file in the root directory of this source tree.
 from __future__ import annotations
 
 import logging
+import os
 import warnings
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
@@ -242,11 +243,13 @@ class WandBSingletonLogger:
         entity: str,
         group: str | None = None,
         job_type: str | None = None,
+        wandb_dir: str | None = None,
     ) -> None:
-        # Use wandb_dir from config if provided, otherwise use log_dir
-        wandb_dir = log_dir
-        if isinstance(config.get("job", {}).get("logger", {}), dict):
-            wandb_dir = config["job"]["logger"].get("wandb_dir", log_dir)
+        # Use wandb_dir from parameter or config if provided, otherwise use log_dir
+        if wandb_dir is None:
+            wandb_dir = log_dir
+            if isinstance(config.get("job", {}).get("logger", {}), dict):
+                wandb_dir = config["job"]["logger"].get("wandb_dir", log_dir)
         
         try:
             wandb.init(
