@@ -45,6 +45,7 @@ export MPLCONFIGDIR=/scratch/aburger/.cache/matplotlib
 export XDG_CACHE_HOME=/scratch/aburger/.cache
 export FAIRCHEM_CACHE_DIR=/scratch/aburger/.cache/fairchem
 export WANDB_CACHE_DIR=/scratch/aburger/wandb
+export WANDB_CONFIG_DIR=/scratch/aburger/wandb
 export WANDB_DIR=/scratch/aburger/wandb
 mkdir -p "$UV_CACHE_DIR" "$MPLCONFIGDIR" "$XDG_CACHE_HOME" "$FAIRCHEM_CACHE_DIR" "$WANDB_CACHE_DIR" "$WANDB_DIR"
 

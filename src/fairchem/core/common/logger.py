@@ -250,7 +250,9 @@ class WandBSingletonLogger:
             wandb_dir = log_dir
             if isinstance(config.get("job", {}).get("logger", {}), dict):
                 wandb_dir = config["job"]["logger"].get("wandb_dir", log_dir)
-        
+        wandb_dir = os.path.abspath(wandb_dir)
+        os.makedirs(wandb_dir, exist_ok=True)
+        print(f"wandb_dir: {wandb_dir}")
         try:
             wandb.init(
                 config=config,
@@ -262,7 +264,7 @@ class WandBSingletonLogger:
                 resume="allow",
                 group=group,
                 job_type=job_type,
-                settings=wandb.Settings(init_timeout=120),
+                settings=wandb.Settings(init_timeout=30),
             )
         except:
             logging.warning("wandb online initialization failed, falling back to offline mode")
