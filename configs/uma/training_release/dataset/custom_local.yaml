@@ -3,17 +3,20 @@ snapshot_dir: custom_dataset_root
 custom_train:
   splits:
     train:
-      src: ${cluster.data_root_dir}/${dataset.snapshot_dir}/train
-  format: ase_db
+      src: ${dataset.data_path}
+      pattern: "*_train.xyz"
+  format: ase_read_multi
+  ase_read_args:
+    index: ":"
   a2g_args:
     r_energy: True
-    r_forces: True
+    r_forces: False
     r_edges: ${cpu_graph}
     radius: ${cutoff_radius}
     max_neigh: ${max_neighbors}
+    molecule_cell_size: 20.0
   key_mapping:
-    energy: energy
-    forces: forces
+    REF_energy: energy
   transforms:
     common_transform:
       dataset_name: custom
@@ -21,17 +24,20 @@ custom_train:
 custom_val:
   splits:
     val:
-      src: ${cluster.data_root_dir}/${dataset.snapshot_dir}/val
-  format: ase_db
+      src: ${dataset.data_path}
+      pattern: "*_validation.xyz"
+  format: ase_read_multi
+  ase_read_args:
+    index: ":"
   a2g_args:
     r_energy: True
-    r_forces: True
+    r_forces: False
     r_edges: ${cpu_graph}
     radius: ${cutoff_radius}
     max_neigh: ${max_neighbors}
+    molecule_cell_size: 20.0
   key_mapping:
-    energy: energy
-    forces: forces
+    REF_energy: energy
   transforms:
     common_transform:
       dataset_name: custom

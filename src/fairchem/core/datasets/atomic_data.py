@@ -400,11 +400,14 @@ class AtomicData:
             forces = None
             stress = None
 
-        energy = (
-            torch.FloatTensor([atoms.info["energy"]])
-            if "energy" in atoms.info
-            else energy
-        )
+        # Check for energy in atoms.info
+        if "energy" in atoms.info:
+            energy = torch.FloatTensor([atoms.info["energy"]])
+        elif "REF_energy" in atoms.info:
+            # Store REF_energy separately so key_mapping can rename it to energy
+            energy = None
+        else:
+            energy = energy
         forces = (
             torch.FloatTensor(atoms.info["forces"])
             if "forces" in atoms.info
@@ -454,6 +457,11 @@ class AtomicData:
             sid=[sid] if isinstance(sid, str) else sid,
             dataset=task_name,
         )
+
+        # Store REF_energy as attribute if present, so key_mapping can rename it to energy
+        if "REF_energy" in atoms.info and energy is None:
+            data.REF_energy = torch.FloatTensor([atoms.info["REF_energy"]])
+            data.__keys__.add("REF_energy")
 
         return data
 

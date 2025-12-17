@@ -37,12 +37,12 @@ uv pip install tensorflow tensorflow-datasets dscribe requests
 
 launch local training
 ```bash
-uv run fairchem -c configs/uma/training_release/uma_sm_direct_customdata.yaml cluster=h100_local dataset.snapshot_dir=/abs/path/to/your/custom_dataset_root
+uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml cluster=h100_local
 ```
 
 launch training on the cluster
 ```bash
-sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/uma_sm_direct_customdata.yaml dataset.snapshot_dir=/abs/path/to/your/custom_dataset_root
+sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml cluster=h100
 ```
 Set dataset.snapshot_dir to the directory containing train/ and val/
 
@@ -56,6 +56,27 @@ uv run scripts/inspect_esen_ckpt.py
 from https://github.com/facebookresearch/fairchem/issues/1604
 > We did not release the config file for eSEN model trained on MPtrj explicitly. But you can find a copy in the checkpoint itself by loading it with torch.load. Note that esen-MP was trained with fairchem version 1. `config = torch.load("path/to/ckpt.pt", weights_only=False)['config']`
 
+
+## Data
+
+- We train only on energy labels (no forces or other properties)
+- Energy is stored as REF_energy in the Properties line
+- Energy values are e_ccsd - e_mp2 (correlation energy difference)
+- Coordinates are in Angstroms
+- Format is compatible with ASE, so most Python ML libraries can load it
+
+
+### How the Mace baseline was trained
+default train config
+```bash
+mace_run_train --config train_mace_10_90_split.yaml
+```
+
+Files that handle Mace's data format
+- mace/tools/torch_geometric/dataloader.py Extends PyTorch's DataLoader to handle batching of AtomicData objects via custom Collater for graph 
+- mace/tools/torch_geometric/batch.py (for Batch.from_data_list)
+- mace/tools/torch_geometric/data.py (for Data class)
+- mace/data/atomic_data.py (for AtomicData class)
 
 ---
 

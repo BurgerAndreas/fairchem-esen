@@ -13,7 +13,7 @@ import os
 from typing import TYPE_CHECKING
 
 import hydra
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 from omegaconf.errors import InterpolationKeyError
 
 from fairchem.core.launchers.api import (
@@ -23,8 +23,6 @@ from fairchem.core.launchers.api import (
 )
 
 if TYPE_CHECKING:
-    from omegaconf import DictConfig
-
     from fairchem.core.components.runner import Runner
 
 
@@ -32,7 +30,7 @@ if TYPE_CHECKING:
 logging.basicConfig(level=logging.INFO)
 
 
-def get_canonical_config(config: DictConfig) -> DictConfig:
+def get_canonical_config(config: DictConfig, yaml_content: str | None = None) -> DictConfig:
     # manually initialize metadata, because OmegaConf currently doesn't call __post_init__ on dataclasses
     job = OmegaConf.to_object(config.job)
     job.__post_init__()
@@ -42,11 +40,19 @@ def get_canonical_config(config: DictConfig) -> DictConfig:
     all_keys = set(config.keys()).difference(ALLOWED_TOP_LEVEL_KEYS)
     used_keys = set()
     for key in all_keys:
-        # make a copy of all keys except the key in question
-        copy_cfg = OmegaConf.create({k: v for k, v in config.items() if k != key})
+        # Check YAML content for interpolation patterns if available
+        # (Hydra resolves interpolations before we get here, so we need to check the source)
+        if yaml_content and f"${{{key}." in yaml_content:
+            used_keys.add(key)
+            continue
+        # Create a copy of the config using OmegaConf's copy functionality
+        copy_cfg = OmegaConf.create(dict(config))
+        # Remove the key from the copy
+        if key in copy_cfg:
+            del copy_cfg[key]
         try:
             OmegaConf.resolve(copy_cfg)
-        except InterpolationKeyError:
+        except (InterpolationKeyError, KeyError):
             # if this error is thrown, this means the key was actually required
             used_keys.add(key)
 
@@ -70,12 +76,17 @@ def get_hydra_config_from_yaml(
     os.environ["HYDRA_FULL_ERROR"] = "1"
     config_directory = os.path.dirname(os.path.abspath(config_yml))
     config_name = os.path.basename(config_yml)
+    
+    # Read YAML file to check for interpolation patterns before Hydra resolves them
+    with open(config_yml, "r") as f:
+        yaml_content = f.read()
+    
     hydra.initialize_config_dir(config_directory, version_base="1.1")
     cfg = hydra.compose(config_name=config_name, overrides=overrides_args)
     # merge default structured config with initialized job object
     cfg = OmegaConf.merge({"job": OmegaConf.structured(JobConfig)}, cfg)
     # canonicalize config (remove top level keys that just used replacing variables)
-    return get_canonical_config(cfg)
+    return get_canonical_config(cfg, yaml_content)
 
 
 def main(
@@ -95,7 +106,7 @@ def main(
     logging.info(f"saved canonical config to {cfg.job.metadata.config_path}")
 
     scheduler_cfg = cfg.job.scheduler
-    logging.info(f"Running fairchemv2 cli with {cfg}")
+    # logging.info(f"Running fairchemv2 cli with {cfg}")
     if scheduler_cfg.mode == SchedulerType.SLURM:  # Run on cluster
         assert (
             os.getenv("SLURM_SUBMIT_HOST") is None

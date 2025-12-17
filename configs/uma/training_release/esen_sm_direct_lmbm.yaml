@@ -3,8 +3,13 @@ defaults:
   - backbone: K4L2
   - dataset: custom_local
   - element_refs: iso_atom_elem_refs
-  - tasks: custom_direct
+  # - tasks: custom_direct
+  - tasks: custom_energy
   - _self_
+
+# Data path for cluster
+dataset:
+  data_path: /project/rrg-aspuru/aburger/fairchem-esen/data_new/1090
 
 job:
   device_type: ${cluster.device}
@@ -37,14 +42,20 @@ bf16: True
 cpu_graph: True
 otf_graph: False
 normalizer_rmsd: 1.0
-direct_forces_coef: 10
+# direct_forces_coef: 10
 
 regress_stress: False
-direct_forces: True
+direct_forces: False
 
 dataset_list: ["custom"]
 
 exclude_keys: []
+
+# Disable PBC for molecules
+backbone:
+  use_pbc: False
+  use_pbc_single: False
+  always_use_pbc: False
 
 train_dataset:
   _target_: fairchem.core.datasets.mt_concat_dataset.create_concat_dataset
@@ -95,8 +106,8 @@ eval_dataloader:
 heads:
   energy:
     module: fairchem.core.models.uma.escn_md.MLP_Energy_Head
-  forces:
-    module: fairchem.core.models.uma.escn_md.Linear_Force_Head
+  # forces:
+  #   module: fairchem.core.models.uma.escn_md.Linear_Force_Head
 
 runner:
   _target_: fairchem.core.components.train.train_runner.TrainEvalRunner

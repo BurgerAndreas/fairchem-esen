@@ -19,4 +19,4 @@ torchtnt
 pyyaml
 wandb
 websockets
-
+pymatgen
