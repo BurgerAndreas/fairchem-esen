@@ -86,13 +86,18 @@ class WandBLogger(Logger):
             if isinstance(self.config["logger"], dict)
             else None
         )
+        
+        # Use wandb_dir from config if provided, otherwise use logs_dir
+        wandb_dir = self.config["cmd"]["logs_dir"]
+        if isinstance(self.config["logger"], dict):
+            wandb_dir = self.config["logger"].get("wandb_dir", wandb_dir)
 
         try:
             wandb.init(
                 config=self.config,
                 id=self.config["cmd"]["timestamp_id"],
                 name=self.config["cmd"]["identifier"],
-                dir=self.config["cmd"]["logs_dir"],
+                dir=wandb_dir,
                 project=project,
                 entity=entity,
                 resume="allow",
@@ -105,7 +110,7 @@ class WandBLogger(Logger):
                 config=self.config,
                 id=self.config["cmd"]["timestamp_id"],
                 name=self.config["cmd"]["identifier"],
-                dir=self.config["cmd"]["logs_dir"],
+                dir=wandb_dir,
                 project=project,
                 entity=entity,
                 resume="allow",
@@ -238,12 +243,17 @@ class WandBSingletonLogger:
         group: str | None = None,
         job_type: str | None = None,
     ) -> None:
+        # Use wandb_dir from config if provided, otherwise use log_dir
+        wandb_dir = log_dir
+        if isinstance(config.get("job", {}).get("logger", {}), dict):
+            wandb_dir = config["job"]["logger"].get("wandb_dir", log_dir)
+        
         try:
             wandb.init(
                 config=config,
                 id=run_id,
                 name=run_name,
-                dir=log_dir,
+                dir=wandb_dir,
                 project=project,
                 entity=entity,
                 resume="allow",
@@ -251,13 +261,13 @@ class WandBSingletonLogger:
                 job_type=job_type,
                 settings=wandb.Settings(init_timeout=120),
             )
-        except CommError:
+        except:
             logging.warning("wandb online initialization failed, falling back to offline mode")
             wandb.init(
                 config=config,
                 id=run_id,
                 name=run_name,
-                dir=log_dir,
+                dir=wandb_dir,
                 project=project,
                 entity=entity,
                 resume="allow",

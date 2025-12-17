@@ -128,6 +128,8 @@ class JobConfig:
     )
     timestamp_id: str = field(default_factory=lambda: get_timestamp_uid())
     run_dir: str = field(default_factory=lambda: tempfile.TemporaryDirectory().name)
+    # Optional override for logs directory
+    logs_dir: Optional[str] = None  
     device_type: DeviceType = DeviceType.CUDA
     debug: bool = False
     scheduler: SchedulerConfig = field(default_factory=lambda: SchedulerConfig)
@@ -151,9 +153,14 @@ class JobConfig:
             cluster = clusterscope.cluster()
         except RuntimeError:
             cluster = ""
+        # Use logs_dir override if provided, otherwise compute from run_dir
+        if self.logs_dir is not None:
+            log_dir = os.path.abspath(self.logs_dir)
+        else:
+            log_dir = os.path.join(self.run_dir, self.timestamp_id, LOG_DIR_NAME)
         self.metadata = Metadata(
             commit=get_commit_hash(),
-            log_dir=os.path.join(self.run_dir, self.timestamp_id, LOG_DIR_NAME),
+            log_dir=log_dir,
             checkpoint_dir=os.path.join(
                 self.run_dir, self.timestamp_id, CHECKPOINT_DIR_NAME
             ),
