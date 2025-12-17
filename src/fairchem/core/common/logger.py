@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 
 import torch
 import wandb
+from wandb.errors import CommError
 
 from fairchem.core.common import distutils
 from fairchem.core.common.registry import registry
@@ -86,16 +87,31 @@ class WandBLogger(Logger):
             else None
         )
 
-        wandb.init(
-            config=self.config,
-            id=self.config["cmd"]["timestamp_id"],
-            name=self.config["cmd"]["identifier"],
-            dir=self.config["cmd"]["logs_dir"],
-            project=project,
-            entity=entity,
-            resume="allow",
-            group=group,
-        )
+        try:
+            wandb.init(
+                config=self.config,
+                id=self.config["cmd"]["timestamp_id"],
+                name=self.config["cmd"]["identifier"],
+                dir=self.config["cmd"]["logs_dir"],
+                project=project,
+                entity=entity,
+                resume="allow",
+                group=group,
+                settings=wandb.Settings(init_timeout=120),
+            )
+        except CommError:
+            logging.warning("wandb online initialization failed, falling back to offline mode")
+            wandb.init(
+                config=self.config,
+                id=self.config["cmd"]["timestamp_id"],
+                name=self.config["cmd"]["identifier"],
+                dir=self.config["cmd"]["logs_dir"],
+                project=project,
+                entity=entity,
+                resume="allow",
+                group=group,
+                mode="offline",
+            )
 
     def watch(self, model, log="all", log_freq: int = 1000) -> None:
         wandb.watch(model, log=log, log_freq=log_freq)
@@ -222,17 +238,33 @@ class WandBSingletonLogger:
         group: str | None = None,
         job_type: str | None = None,
     ) -> None:
-        wandb.init(
-            config=config,
-            id=run_id,
-            name=run_name,
-            dir=log_dir,
-            project=project,
-            entity=entity,
-            resume="allow",
-            group=group,
-            job_type=job_type,
-        )
+        try:
+            wandb.init(
+                config=config,
+                id=run_id,
+                name=run_name,
+                dir=log_dir,
+                project=project,
+                entity=entity,
+                resume="allow",
+                group=group,
+                job_type=job_type,
+                settings=wandb.Settings(init_timeout=120),
+            )
+        except CommError:
+            logging.warning("wandb online initialization failed, falling back to offline mode")
+            wandb.init(
+                config=config,
+                id=run_id,
+                name=run_name,
+                dir=log_dir,
+                project=project,
+                entity=entity,
+                resume="allow",
+                group=group,
+                job_type=job_type,
+                mode="offline",
+            )
 
     @classmethod
     def get_instance(cls):
