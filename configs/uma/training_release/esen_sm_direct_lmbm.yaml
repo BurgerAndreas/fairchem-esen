@@ -9,7 +9,8 @@ defaults:
 # Data path for cluster
 dataset:
   # data_path: /project/rrg-aspuru/aburger/fairchem-esen/data_new/1090
-  data_path: /scratch/aburger/fairchem-esen/data_new/1090
+  # data_path: /scratch/aburger/fairchem-esen/data_new/1090 # Trillium
+  data_path: /project/aip-aspuru/aburger/fairchem-esen # Killarney 
 
 job:
   device_type: ${cluster.device}

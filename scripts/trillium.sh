@@ -32,7 +32,7 @@ source .env
 
 # cd $SLURM_SUBMIT_DIR
 # cd /project/rrg-aspuru/aburger/fairchem-esen
-cd scratch/aburger/fairchem-esen
+cd /scratch/aburger/fairchem-esen
 
 # load modules
 module load StdEnv/2023  gcc/12.3 cuda/12.6

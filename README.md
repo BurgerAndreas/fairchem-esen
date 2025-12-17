@@ -23,8 +23,23 @@
 </h4>
 
 ---
+
 # eSEN training 
 
+### Optional: install uv
+
+On read-only clusters like trillium it is better to install uv on scratch
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="/scratch/aburger/bin" sh
+```
+add this to `nano ~/.bashrc`
+```bash
+export PATH="/scratch/aburger/bin:$PATH"
+export UV_PYTHON_INSTALL_DIR="/scratch/aburger/uv/python"
+export UV_CACHE_DIR="/scratch/aburger/uv/cache"
+```
+
+### Setup venv
 setup uv venv
 ```bash
 uv venv .venv --python 3.12
@@ -38,6 +53,7 @@ uv pip install tensorflow tensorflow-datasets dscribe requests
 launch local training
 ```bash
 uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml cluster=h100_local
+# uv run packages/fairchem-core/src/fairchem/core/_cli.py -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml cluster=h100_local
 ```
 
 launch training on the cluster

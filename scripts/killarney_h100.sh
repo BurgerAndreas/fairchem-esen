@@ -2,7 +2,7 @@
 #SBATCH -A aip-aspuru
 #SBATCH -D /project/aip-aspuru/aburger/fairchem-esen
 #SBATCH --time=71:00:00
-#SBATCH --gres=gpu:l40s:1 
+#SBATCH --gres=gpu:h100:1 
 #SBATCH --mem=128GB
 #SBATCH --job-name=fairchem-esen 
 # Jobs must write their output to your scratch or project directory (home is read-only on compute nodes).
