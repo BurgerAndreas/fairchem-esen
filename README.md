@@ -46,7 +46,7 @@ uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -r requirements.txt
 uv pip install -e packages/fairchem-core[dev]
-uv pip install tensorflow tensorflow-datasets dscribe requests
+# uv pip install tensorflow tensorflow-datasets dscribe requests
 # hf auth whoami
 ```
 
@@ -63,22 +63,32 @@ sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/esen_sm_dire
 
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml cluster=h100
 
+# 300 sample subset
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml cluster=h100 dataset.data_path=/project/aip-aspuru/aburger/fairchem-esen/data/300/8020 
-
 ```
 
 ### Evaluation
 
-testing on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz
+We test on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz
 
-### How we got our config
-We will use the config from https://huggingface.co/facebook/OMol25/blob/main/checkpoints/esen_sm_direct_all.pt
+Generate predictions and store to disk as csv
+```bash
+uv run scripts/esen_predict_xyz.py --checkpoint /path/to/ckpt.pt 
+```
+
+Compute error metrics
+```bash
+uv run scripts/compare_esen_predictions.py
+```
+
+
+### How we got our model and training config
+We will use the eSEN config from the OMol release https://huggingface.co/facebook/OMol25/blob/main/checkpoints/esen_sm_direct_all.pt
 ```bash
 uv run scripts/inspect_esen_ckpt.py 
 ```
 
-### Other possible config we did not use
-from https://github.com/facebookresearch/fairchem/issues/1604
+Other possible config we did not use, from https://github.com/facebookresearch/fairchem/issues/1604
 > We did not release the config file for eSEN model trained on MPtrj explicitly. But you can find a copy in the checkpoint itself by loading it with torch.load. Note that esen-MP was trained with fairchem version 1. `config = torch.load("path/to/ckpt.pt", weights_only=False)['config']`
 
 

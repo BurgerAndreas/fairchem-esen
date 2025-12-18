@@ -20,3 +20,5 @@ pyyaml
 wandb
 websockets
 pymatgen
+scikit-learn
+seaborn

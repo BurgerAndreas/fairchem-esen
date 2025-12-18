@@ -135,6 +135,7 @@ class MaxAtomDistributedBatchSampler(Sampler[list[int]]):
         self.start_iter = 0
 
         # we pre-create the batches here and can only do this once, otherwise everytime we get this iterator we might get a different number of batches
+        logging.info(f"{self.__class__.__name__} Preparing batches...")
         self.all_batches = self._prepare_batches()
         # If the dataset length is evenly divisible by # of replicas, then there
         # is no need to drop any data, since the dataset will be split equally.
