@@ -53,21 +53,21 @@ uv pip install -e packages/fairchem-core[dev]
 ### Training
 launch local training
 ```bash
-uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml cluster=local
-# uv run packages/fairchem-core/src/fairchem/core/_cli.py -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml cluster=local
+uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml
+# uv run packages/fairchem-core/src/fairchem/core/_cli.py -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml
 ```
 
 launch training on the cluster
 ```bash
-sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml cluster=one
+sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml
 
-sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml cluster=one
+sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml
 
 # normal random batching (faster), instead of aligning batches to have the same number of atoms
-sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_batch.yaml cluster=one
+sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_batch.yaml
 
 # 300 sample subset
-sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml cluster=one dataset.data_path=/project/aip-aspuru/aburger/fairchem-esen/data/300/8020 
+sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml dataset.data_path=/project/aip-aspuru/aburger/fairchem-esen/data/300/8020 
 
 # other options
 # bf16=False steps=1e6 
@@ -75,7 +75,7 @@ sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_dir
 
 To resume training, point at `resume.yaml` of the checkoint instead of the original config. For example:
 ```bash
-sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints/step_XXXXX/resume.yaml cluster=h100 epochs=1000
+sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints/step_XXXXX/resume.yaml epochs=1000
 ```
 Only override what you want to change (e.g. bump epochs from the original value to a higher one if you want to train longer).
 

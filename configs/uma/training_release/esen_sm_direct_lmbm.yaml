@@ -1,5 +1,5 @@
 defaults:
-  - cluster: h100
+  - cluster: one
   - backbone: K4L2
   - dataset: custom_local
   # - tasks: custom_direct
