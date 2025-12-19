@@ -23,12 +23,12 @@ job:
   logger:
     _target_: fairchem.core.common.logger.WandBSingletonLogger.init_wandb
     _partial_: true
-    entity: fairchem
+    entity: andreas-burger
     project: uma_custom
 
 # Data path for local debugging  
 dataset:
-  data_path: /ssd/Code/fairchem-esen/data_new/1090
+  data_path: /ssd/Code/fairchem-esen/data/all/8020
 
 moe_layer_type: pytorch
 num_moe_experts: 0
@@ -73,7 +73,7 @@ steps: null
 batch_size: 2
 
 # Reduced memory requirements for 11GB VRAM (RTX 3060)
-max_atoms: 32  # Reduced from 256 to fit 11GB VRAM
+# max_atoms: 32  # Reduced from 256 to fit 11GB VRAM
 max_neighbors: 32
 cutoff_radius: 5.0  # Slightly reduced from 6.0 to reduce graph size
 
@@ -89,6 +89,7 @@ train_dataloader:
     # max_atoms: ${max_atoms}
     shuffle: True
     seed: 0
+    on_error: "warn_and_no_balance"
   num_workers: 0  # Set to 0 to reduce memory usage on limited VRAM
   collate_fn:
     _target_: fairchem.core.units.mlip_unit.mlip_unit.mt_collater_adapter
@@ -106,6 +107,7 @@ eval_dataloader:
     # max_atoms: ${max_atoms}
     shuffle: False
     seed: 0
+    on_error: "warn_and_no_balance"
   num_workers: 0  # Set to 0 to reduce memory usage on limited VRAM
   collate_fn:
     _target_: fairchem.core.units.mlip_unit.mlip_unit.mt_collater_adapter

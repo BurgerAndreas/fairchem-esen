@@ -9,9 +9,34 @@ from __future__ import annotations
 
 import logging
 
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import BatchSampler, DataLoader, Dataset, DistributedSampler
 
 from fairchem.core.common import distutils, gp_utils
+
+
+def simple_batch_sampler(
+    dataset: Dataset,
+    num_replicas: int,
+    rank: int,
+    *,
+    batch_size: int,
+    shuffle: bool = True,
+    seed: int = 0,
+    drop_last: bool = False,
+):
+    """
+    Simple batch sampler using PyTorch's built-in DistributedSampler and BatchSampler.
+    Just randomly picks batches as usual - no special atom-based balancing.
+    """
+    sampler = DistributedSampler(
+        dataset=dataset,
+        num_replicas=num_replicas,
+        rank=rank,
+        shuffle=shuffle,
+        seed=seed,
+        drop_last=drop_last,
+    )
+    return BatchSampler(sampler=sampler, batch_size=batch_size, drop_last=drop_last)
 
 
 def get_dataloader(
