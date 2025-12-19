@@ -70,6 +70,7 @@ heads:
 # Short training run
 epochs: 2
 steps: null
+batch_size: 2
 
 # Reduced memory requirements for 11GB VRAM (RTX 3060)
 max_atoms: 32  # Reduced from 256 to fit 11GB VRAM
@@ -84,7 +85,8 @@ train_dataloader:
     # _target_: fairchem.core.datasets.samplers.max_atom_distributed_sampler.MaxAtomDistributedBatchSampler
     _target_: fairchem.core.common.data_parallel.BalancedBatchSampler
     _partial_: True
-    max_atoms: ${max_atoms}
+    batch_size: ${batch_size}
+    # max_atoms: ${max_atoms}
     shuffle: True
     seed: 0
   num_workers: 0  # Set to 0 to reduce memory usage on limited VRAM
@@ -100,7 +102,8 @@ eval_dataloader:
     # _target_: fairchem.core.datasets.samplers.max_atom_distributed_sampler.MaxAtomDistributedBatchSampler
     _target_: fairchem.core.common.data_parallel.BalancedBatchSampler
     _partial_: True
-    max_atoms: ${max_atoms}
+    batch_size: ${batch_size}
+    # max_atoms: ${max_atoms}
     shuffle: False
     seed: 0
   num_workers: 0  # Set to 0 to reduce memory usage on limited VRAM

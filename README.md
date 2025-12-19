@@ -68,6 +68,9 @@ sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_dir
 
 # 300 sample subset
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml cluster=one dataset.data_path=/project/aip-aspuru/aburger/fairchem-esen/data/300/8020 
+
+# other options
+# bf16=False steps=1e6 
 ```
 
 To resume training, point at `resume.yaml` of the checkoint instead of the original config. For example:
