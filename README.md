@@ -73,9 +73,9 @@ sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_dir
 # bf16=False steps=1e6 
 ```
 
-To resume training, point at `resume.yaml` of the checkoint instead of the original config. For example:
+To resume training, point at `resume.yaml` of the checkoint instead of the original config. You might need `runner.abc=z` For example:
 ```bash
-sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints/step_XXXXX/resume.yaml epochs=1000
+sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints/step_XXXXX/resume.yaml runner.epochs=1000
 ```
 Only override what you want to change (e.g. bump epochs from the original value to a higher one if you want to train longer).
 
@@ -85,7 +85,7 @@ We test on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz
 
 Generate predictions and store to disk as csv
 ```bash
-uv run scripts/esen_predict_xyz.py --checkpoint /path/to/ckpt.pt 
+uv run scripts/esen_predict.py --checkpoint /path/to/ckpt.pt 
 ```
 
 Compute error metrics

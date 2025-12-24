@@ -30,6 +30,19 @@ def main() -> None:
     args = parse_args()
 
     checkpoint_path = args.checkpoint
+    
+    # if checkpoint path is a directory, find latest step checkpoint
+    # /scratch/aburger/checkpoint/uma/202512-1717-3450-f34f/checkpoints
+    if checkpoint_path.is_dir():
+        # get latest checkpoint dir
+        checkpoint_path = list(checkpoint_path.glob("step_*"))[-1]
+        # get checkpoint file
+        checkpoint_path = list(checkpoint_path.glob("*.pt"))[-1]
+    
+    checkpoint_path = checkpoint_path.resolve()
+    
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"Checkpoint file {checkpoint_path} does not exist")
 
     calc = FAIRChemCalculator.from_model_checkpoint(
         name_or_path=str(checkpoint_path),
@@ -38,6 +51,7 @@ def main() -> None:
     )
 
     datasets = {
+        "qm9": Path("data/all/8020/qm9_validation.xyz"),
         "amino_acids": Path("data/amino_acids.xyz"),
         "alcohols": Path("data/alcohols.xyz"),
         "alkanes": Path("data/alkanes.xyz"),
@@ -71,7 +85,9 @@ def main() -> None:
         output_path = Path("data") / f"predictions_{name}_esen.csv"
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output_path, index=False)
+        print(f"Predictions saved to {output_path}")
 
+    print("\nAll predictions saved")
 
 if __name__ == "__main__":
     main()

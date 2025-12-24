@@ -660,6 +660,16 @@ class MLIPTrainEvalUnit(
         if self.scheduler is None:
             self.load_scheduler(len(state.train_state.dataloader))
 
+        if self.logger:
+            train_num_batches = len(state.train_state.dataloader)
+            train_num_samples = len(state.train_state.dataloader.dataset)
+            self.logger.log_summary(
+                {
+                    "train/num_batches": train_num_batches,
+                    "train/num_samples": train_num_samples,
+                }
+            )
+
         if self.lazy_state_location is not None:
             self._execute_load_state(self.lazy_state_location)
 
@@ -834,6 +844,15 @@ class MLIPTrainEvalUnit(
 
     def on_eval_epoch_start(self, state: State) -> None:
         self.eval_unit.on_eval_epoch_start(state)
+        if self.logger:
+            eval_num_batches = len(state.eval_state.dataloader)
+            eval_num_samples = len(state.eval_state.dataloader.dataset)
+            self.logger.log_summary(
+                {
+                    "eval/num_batches": eval_num_batches,
+                    "eval/num_samples": eval_num_samples,
+                }
+            )
 
     def on_eval_epoch_end(self, state: State) -> None:
         metrics = self.eval_unit.on_eval_epoch_end(state)
