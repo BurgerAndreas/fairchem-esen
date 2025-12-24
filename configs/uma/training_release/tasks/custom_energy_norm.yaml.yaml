@@ -11,16 +11,16 @@
     dim: [1]
     dtype: float32
   normalizer:
-    _target_: fairchem.core.modules.normalization.normalizer.Normalizer
-    mean: 0.0
-    rmsd: ${normalizer_rmsd}
-    # fit:
-    #   targets: ["energy"]
-    #   batch_size: 32
-    #   num_batches: null  # null = use all data, or set a number to limit (e.g., 100)
-    #   override_values:
-    #     energy:
-    #       mean: 0.0  # Force mean to 0.0, compute RMSD from data
+    # _target_: fairchem.core.modules.normalization.normalizer.Normalizer
+    # mean: 0.0
+    # rmsd: ${normalizer_rmsd}
+    fit:
+      targets: ["energy"]
+      batch_size: 256
+      num_batches: null  # null = use all data, or set a number to limit (e.g., 100)
+      # override_values:
+      #   energy:
+      #     mean: 0.0  # Force mean to 0.0, compute RMSD from data
   datasets:
     - custom
   metrics:

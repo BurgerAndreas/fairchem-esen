@@ -3,7 +3,7 @@ snapshot_dir: custom_dataset_root
 custom_train:
   splits:
     train:
-      src: ${dataset.data_path}
+      src: ${dataset.data_path}/train/
       pattern: "*_train.xyz"
   format: ase_read_multi
   ase_read_args:
@@ -24,7 +24,7 @@ custom_train:
 custom_val:
   splits:
     val:
-      src: ${dataset.data_path}
+      src: ${dataset.data_path}/val/
       pattern: "*_validation.xyz"
   format: ase_read_multi
   ase_read_args:

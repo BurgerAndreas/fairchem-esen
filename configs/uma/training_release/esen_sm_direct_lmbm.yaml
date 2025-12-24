@@ -1,7 +1,7 @@
 defaults:
   - cluster: one
   - backbone: K4L2
-  - dataset: custom_local
+  - dataset: custom_xyz
   # - tasks: custom_direct
   - tasks: custom_energy
   - _self_
