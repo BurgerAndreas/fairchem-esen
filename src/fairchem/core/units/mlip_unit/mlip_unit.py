@@ -493,7 +493,7 @@ class MLIPTrainEvalUnit(
         job_config: DictConfig,
         model: torch.nn.Module,
         optimizer_fn: callable,
-        cosine_lr_scheduler_fn: callable,
+        lr_scheduler_fn: callable,
         tasks: list[Task],
         bf16: bool = False,
         print_every: int = 10,
@@ -617,15 +617,24 @@ class MLIPTrainEvalUnit(
         eval_model = self.ema_model if self.ema_model is not None else self.model
         self.eval_unit.setup_train_eval_unit(eval_model)
 
-        self.cosine_lr_scheduler_fn = cosine_lr_scheduler_fn
+        self.lr_scheduler_fn = lr_scheduler_fn
         self.scheduler = None
         self.lazy_state_location = None
 
     def load_scheduler(self, train_dataloader_size: int) -> int:
-        self.scheduler = self.cosine_lr_scheduler_fn(
-            n_iters_per_epoch=train_dataloader_size,
-            optimizer=self.optimizer,
-        )
+        import inspect
+
+        # Check if the scheduler function accepts n_iters_per_epoch parameter
+        sig = inspect.signature(self.lr_scheduler_fn)
+        if 'n_iters_per_epoch' in sig.parameters:
+            # Custom scheduler wrapper (like cosine) that needs n_iters_per_epoch
+            self.scheduler = self.lr_scheduler_fn(
+                n_iters_per_epoch=train_dataloader_size,
+                optimizer=self.optimizer,
+            )
+        else:
+            # Direct PyTorch scheduler (like ReduceLROnPlateau) that only needs optimizer
+            self.scheduler = self.lr_scheduler_fn(optimizer=self.optimizer)
 
     def on_train_start(self, state: State) -> None:
         self.model.train()
@@ -761,9 +770,16 @@ class MLIPTrainEvalUnit(
             self.previous_wall_time = time.time()
             num_atoms_local = data.natoms.sum().item()
             num_samples_local = data.natoms.numel()
+            # Get current learning rate - some schedulers have get_lr(), others don't
+            try:
+                current_lr = self.scheduler.get_lr()[0]
+            except (NotImplementedError, AttributeError):
+                # For schedulers like ReduceLROnPlateau that don't implement get_lr()
+                current_lr = self.optimizer.param_groups[0]['lr']
+
             log_dict = {
                 "train/loss": scalar_loss.item(),
-                "train/lr": self.scheduler.get_lr()[0],
+                "train/lr": current_lr,
                 "train/step": step,
                 "train/epoch": epoch,
                 "train/samples_per_second(approx)": num_samples_local
@@ -782,7 +798,13 @@ class MLIPTrainEvalUnit(
             if step % self.print_every == 0:
                 logging.info(log_dict)
 
-            self.scheduler.step()
+            # Step scheduler - handle different scheduler types
+            if hasattr(self.scheduler, 'step') and 'metrics' in self.scheduler.step.__code__.co_varnames:
+                # ReduceLROnPlateau and similar schedulers that need metrics
+                self.scheduler.step(scalar_loss.item())
+            else:
+                # Regular schedulers that step without arguments
+                self.scheduler.step()
 
             # TODO: compute metrics
             self.last_loss = scalar_loss.item()

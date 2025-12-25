@@ -5,6 +5,7 @@ defaults:
   # - tasks: custom_direct
   - tasks: custom_energy
   - _self_
+  - lrs: cosine
 
 # Data path for cluster
 dataset:
@@ -129,14 +130,13 @@ runner:
       _partial_: true
       lr: 5e-4
       weight_decay: 1e-3
-    cosine_lr_scheduler_fn:
-      _target_: fairchem.core.units.mlip_unit.mlip_unit._get_consine_lr_scheduler
-      _partial_: true
-      warmup_factor: 0.2
-      warmup_epochs: 0.01
-      lr_min_factor: 0.01
-      epochs: ${epochs}
-      steps: ${steps}
+    # plateau_lr_scheduler_fn:
+    #   _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+    #   _partial_: true
+    #   mode: min
+    #   factor: 0.5
+    #   patience: 10
+    #   min_lr: 1e-6
     print_every: 10
     clip_grad_norm: 100
     bf16: ${bf16}

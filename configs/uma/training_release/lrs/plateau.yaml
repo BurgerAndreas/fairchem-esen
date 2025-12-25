@@ -1,0 +1,11 @@
+# @package _global_
+
+runner:
+  train_eval_unit:
+    lr_scheduler_fn:
+      _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
+      _partial_: true
+      mode: min
+      factor: 0.5
+      patience: 10
+      min_lr: 1e-6

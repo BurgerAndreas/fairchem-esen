@@ -4,6 +4,7 @@ defaults:
   - dataset: custom_lmdb # custom_xyz
   - tasks: custom_energy
   - _self_
+  - lrs: cosine
 
 # Debug overrides: short run with reduced memory requirements
 job:
@@ -132,14 +133,14 @@ runner:
       _partial_: true
       lr: 5e-4
       weight_decay: 1e-3
-    cosine_lr_scheduler_fn:
-      _target_: fairchem.core.units.mlip_unit.mlip_unit._get_consine_lr_scheduler
-      _partial_: true
-      warmup_factor: 0.2
-      warmup_epochs: 0.01
-      lr_min_factor: 0.01
-      epochs: ${epochs}
-      steps: ${steps}
+    # cosine_lr_scheduler_fn:
+    #   _target_: fairchem.core.units.mlip_unit.mlip_unit._get_consine_lr_scheduler
+    #   _partial_: true
+    #   warmup_factor: 0.2
+    #   warmup_epochs: 0.01
+    #   lr_min_factor: 0.01
+    #   epochs: ${epochs}
+    #   steps: ${steps}
     print_every: 10
     clip_grad_norm: 100
     bf16: ${bf16}
