@@ -1,5 +1,6 @@
 import bisect
 import pickle
+from functools import cached_property
 from pathlib import Path
 
 import lmdb
@@ -9,7 +10,10 @@ from ase import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from torch.utils.data import Dataset
 
+from fairchem.core.common.registry import registry
 from fairchem.core.datasets.atomic_data import AtomicData
+from fairchem.core.datasets.base_dataset import BaseDataset
+from fairchem.core.modules.transforms import DataTransforms
 
 
 GLOBAL_ATOM_NUMBERS = torch.tensor([1, 6, 7, 8, 9])
@@ -38,7 +42,8 @@ def onehot_convert(atomic_numbers, device):
     return torch.tensor(onehot, dtype=torch.int64, device=device)
 
 
-class LmdbDataset(Dataset):
+@registry.register_dataset("lmdb")
+class LmdbDataset(BaseDataset):
     r"""Dataset class to load from LMDB files containing relaxation
     trajectories or single point computations.
 
@@ -51,10 +56,13 @@ class LmdbDataset(Dataset):
                     (default: :obj:`None`)
     """
 
-    def __init__(self, src, transform=None, **kwargs):
-        super(LmdbDataset, self).__init__()
-
+    def __init__(self, config, transform=None, **kwargs):
+        super().__init__(config)
+        
+        src = config["src"]
         self.path = Path(src)
+        self.num_samples = 0
+        self.transforms = DataTransforms(self.config.get("transforms", {}))
         if not self.path.is_file():
             db_paths = sorted(self.path.glob("*.lmdb"))
             assert len(db_paths) > 0, f"No LMDBs found in '{self.path}'"
@@ -88,9 +96,6 @@ class LmdbDataset(Dataset):
 
         self.transform = transform
 
-    def __len__(self):
-        return self.num_samples
-
     def __getitem__(self, idx):
         if idx >= self.num_samples:
             raise IndexError(
@@ -122,13 +127,18 @@ class LmdbDataset(Dataset):
 
         if self.transform is not None:
             data_object = self.transform(data_object)
+        
+        # # Handle one_hot encoding if present (convert to atomic numbers)
+        # if hasattr(data_object, "one_hot") and not hasattr(data_object, "z"):
+        #     indices = data_object.one_hot.long().argmax(dim=1)
+        #     data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[
+        #         indices.to(data_object.pos.device)
+        #     ]
+
+        # Apply transforms (this sets dataset attribute from config)
+        data_object = self.transforms(data_object)
 
         data_object.dataset_idx = torch.tensor(idx)
-
-        indices = data_object.one_hot.long().argmax(dim=1)
-        data_object.z = GLOBAL_ATOM_NUMBERS.to(data_object.pos.device)[
-            indices.to(data_object.pos.device)
-        ]
 
         return data_object
 
@@ -153,78 +163,78 @@ class LmdbDataset(Dataset):
             self.env.close()
 
 
-SPLIT_CACHE = {}
+# SPLIT_CACHE = {}
 
 
-def _make_split_indices(total, split_fracs, permutation):
-    train_n = int(total * split_fracs[0])
-    val_n = int(total * split_fracs[1])
-    train_end = train_n
-    val_end = train_n + val_n
-    splits = {
-        "train": permutation[:train_end],
-        "val": permutation[train_end:val_end],
-        "test": permutation[val_end:],
-    }
-    return splits
+# def _make_split_indices(total, split_fracs, permutation):
+#     train_n = int(total * split_fracs[0])
+#     val_n = int(total * split_fracs[1])
+#     train_end = train_n
+#     val_end = train_n + val_n
+#     splits = {
+#         "train": permutation[:train_end],
+#         "val": permutation[train_end:val_end],
+#         "test": permutation[val_end:],
+#     }
+#     return splits
 
 
-class AtomicLmdbDataset(Dataset):
-    def __init__(
-        self,
-        src,
-        split="train",
-        split_fracs=(0.8, 0.1, 0.1),
-        seed=0,
-        max_neigh=64,
-        cutoff=6.0,
-        molecule_cell_size=40.0,
-        dataset_name="sample",
-    ):
-        super().__init__()
-        self.base = LmdbDataset(src)
-        self.dataset_name = dataset_name
-        self.max_neigh = max_neigh
-        self.cutoff = cutoff
-        self.molecule_cell_size = molecule_cell_size
-        key = (str(Path(src).resolve()), seed)
-        if key not in SPLIT_CACHE:
-            rng = np.random.default_rng(seed)
-            SPLIT_CACHE[key] = rng.permutation(len(self.base))
-        splits = _make_split_indices(len(self.base), split_fracs, SPLIT_CACHE[key])
-        assert split in splits, f"split must be one of {list(splits)}"
-        self.indices = splits[split]
-        self.num_samples = len(self.indices)
-        self.split = split
+# class AtomicLmdbDataset(Dataset):
+#     def __init__(
+#         self,
+#         src,
+#         split="train",
+#         split_fracs=(0.8, 0.1, 0.1),
+#         seed=0,
+#         max_neigh=64,
+#         cutoff=6.0,
+#         molecule_cell_size=40.0,
+#         dataset_name="sample",
+#     ):
+#         super().__init__()
+#         self.base = LmdbDataset(src)
+#         self.dataset_name = dataset_name
+#         self.max_neigh = max_neigh
+#         self.cutoff = cutoff
+#         self.molecule_cell_size = molecule_cell_size
+#         key = (str(Path(src).resolve()), seed)
+#         if key not in SPLIT_CACHE:
+#             rng = np.random.default_rng(seed)
+#             SPLIT_CACHE[key] = rng.permutation(len(self.base))
+#         splits = _make_split_indices(len(self.base), split_fracs, SPLIT_CACHE[key])
+#         assert split in splits, f"split must be one of {list(splits)}"
+#         self.indices = splits[split]
+#         self.num_samples = len(self.indices)
+#         self.split = split
 
-    def __len__(self):
-        return self.num_samples
+#     def __len__(self):
+#         return self.num_samples
 
-    def __getitem__(self, idx):
-        base_idx = int(self.indices[idx])
-        base_data = self.base[base_idx]
-        atoms = Atoms(
-            numbers=base_data.z.cpu().numpy(),
-            positions=base_data.pos.cpu().numpy(),
-        )
-        calc_kwargs = {}
-        if hasattr(base_data, "energy"):
-            calc_kwargs["energy"] = float(base_data.energy)
-        if hasattr(base_data, "forces"):
-            calc_kwargs["forces"] = base_data.forces.cpu().numpy()
-        if calc_kwargs:
-            atoms.calc = SinglePointCalculator(atoms=atoms, **calc_kwargs)
-        atomic_data = AtomicData.from_ase(
-            atoms,
-            r_edges=True,
-            radius=self.cutoff,
-            max_neigh=self.max_neigh,
-            molecule_cell_size=self.molecule_cell_size,
-            task_name=self.dataset_name,
-            r_forces=True,
-        )
-        atomic_data.dataset_name = self.dataset_name
-        return atomic_data
+#     def __getitem__(self, idx):
+#         base_idx = int(self.indices[idx])
+#         base_data = self.base[base_idx]
+#         atoms = Atoms(
+#             numbers=base_data.z.cpu().numpy(),
+#             positions=base_data.pos.cpu().numpy(),
+#         )
+#         calc_kwargs = {}
+#         if hasattr(base_data, "energy"):
+#             calc_kwargs["energy"] = float(base_data.energy)
+#         if hasattr(base_data, "forces"):
+#             calc_kwargs["forces"] = base_data.forces.cpu().numpy()
+#         if calc_kwargs:
+#             atoms.calc = SinglePointCalculator(atoms=atoms, **calc_kwargs)
+#         atomic_data = AtomicData.from_ase(
+#             atoms,
+#             r_edges=True,
+#             radius=self.cutoff,
+#             max_neigh=self.max_neigh,
+#             molecule_cell_size=self.molecule_cell_size,
+#             task_name=self.dataset_name,
+#             r_forces=True,
+#         )
+#         atomic_data.dataset_name = self.dataset_name
+#         return atomic_data
 
 
 if __name__ == "__main__":
