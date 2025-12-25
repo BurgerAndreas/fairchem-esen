@@ -28,7 +28,7 @@ job:
 
 # Data path for local debugging  
 dataset:
-  data_path: /ssd/Code/fairchem-esen/data/all/8020
+  data_path: /ssd/Code/fairchem-esen/data/all/8020/
 
 moe_layer_type: pytorch
 num_moe_experts: 0

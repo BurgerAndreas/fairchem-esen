@@ -3,7 +3,7 @@ snapshot_dir: custom_dataset_root
 custom_train:
   splits:
     train:
-      src: ${dataset.data_path}/qm7_train.lmdb
+      src: ${dataset.data_path}/train/qm7_train.lmdb
   format: lmdb
   transforms:
     common_transform:
@@ -12,7 +12,7 @@ custom_train:
 custom_val:
   splits:
     val:
-      src: ${dataset.data_path}/qm7_validation.lmdb
+      src: ${dataset.data_path}/val/qm7_validation.lmdb
   format: lmdb
   transforms:
     common_transform:
