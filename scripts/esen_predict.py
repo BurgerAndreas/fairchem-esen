@@ -98,8 +98,9 @@ def main() -> None:
         for suffix in metric_suffixes:
             wandb.define_metric(f"{dataset_name}/{suffix}", summary="min")
 
+    summary_str = ""
     for name, xyz_path in datasets.items():
-        print(f"\n # Predicting {name}.")
+        print(f"\n# Predicting {name}.")
         atoms_list = read(str(xyz_path), index=":")
 
         rows = []
@@ -162,9 +163,15 @@ def main() -> None:
             # Set as summary metrics explicitly
             for key, value in metrics.items():
                 wandb.run.summary[key] = value
-            print(f"Metrics for {name}: MAE={mae_structure*1e3:.4f}, RMSE={rmse_structure*1e3:.4f} [mH] (per structure)")
+            _metrics_str = f"Metrics for {name}: MAE={mae_structure*1e3:.4f}, RMSE={rmse_structure*1e3:.4f} [mH] (per structure)"
+            summary_str += _metrics_str + "\n"
         else:
-            print(f"Warning: No reference energies found for {name}, skipping metrics")
+            _metrics_str = f"Warning: No reference energies found for {name}, skipping metrics"
+            summary_str += _metrics_str + "\n"
+        print(_metrics_str)
+
+    print("")
+    print(summary_str)
 
     print("\nAll predictions saved!")
     wandb.finish()
