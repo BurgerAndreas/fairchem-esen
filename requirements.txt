@@ -22,3 +22,4 @@ websockets
 pymatgen
 scikit-learn
 seaborn
+pandas

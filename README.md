@@ -94,7 +94,8 @@ We test on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz
 
 Generate predictions and store to disk as csv
 ```bash
-sbatch scripts/killarney.sh scripts/esen_predict.py --checkpoint /path/to/ckpt.pt 
+uv run scripts/esen_predict.py --checkpoint /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints
+sbatch scripts/killarney.sh scripts/esen_predict.py --checkpoint 
 ```
 
 Compute error metrics
