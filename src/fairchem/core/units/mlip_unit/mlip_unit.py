@@ -798,12 +798,9 @@ class MLIPTrainEvalUnit(
             if step % self.print_every == 0:
                 logging.info(log_dict)
 
-            # Step scheduler - handle different scheduler types
-            if hasattr(self.scheduler, 'step') and 'metrics' in self.scheduler.step.__code__.co_varnames:
-                # ReduceLROnPlateau and similar schedulers that need metrics
-                self.scheduler.step(scalar_loss.item())
-            else:
-                # Regular schedulers that step without arguments
+            # Step scheduler - only step non-plateau schedulers here (per-step)
+            # ReduceLROnPlateau is stepped in on_eval_epoch_end with validation loss
+            if not isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                 self.scheduler.step()
 
             # TODO: compute metrics
@@ -883,6 +880,10 @@ class MLIPTrainEvalUnit(
         # Need to manually reshard the FSDP ema model: https://github.com/pytorch/pytorch/issues/117421#issuecomment-1890948734, otherwise we don't update the ema model weights correctly
         if self.ema_model and self.train_strategy == TrainStrategy.FSDP:
             _reshard_fsdp(self.ema_model)
+        # Step ReduceLROnPlateau scheduler with validation loss (per-eval, not per-step)
+        if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+            val_loss = metrics.get("val/loss", self.last_loss)
+            self.scheduler.step(val_loss)
 
     def get_finetune_model_config(self) -> DictConfig | None:
         return self.finetune_model_full_config

@@ -5,7 +5,11 @@ runner:
     lr_scheduler_fn:
       _target_: torch.optim.lr_scheduler.ReduceLROnPlateau
       _partial_: true
-      mode: min
-      factor: 0.5
-      patience: 10
-      min_lr: 1e-6
+      mode: min # based on validation loss
+      # Factor by which the learning rate will be
+      #     reduced. new_lr = lr * factor. Default: 0.1.
+      # patience (int): The number of allowed epochs with no improvement after
+      #     which the learning rate will be reduced
+      factor: 0.8
+      patience: 50 # in epochs
+      min_lr: 1e-8
