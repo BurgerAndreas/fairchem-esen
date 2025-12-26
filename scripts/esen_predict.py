@@ -51,7 +51,7 @@ def main() -> None:
     )
 
     datasets = {
-        "qm9": Path("data/all/8020/qm9_validation.xyz"),
+        "qm7": Path("data/all/8020/qm7_validation.xyz"),
         "amino_acids": Path("data/amino_acids.xyz"),
         "alcohols": Path("data/alcohols.xyz"),
         "alkanes": Path("data/alkanes.xyz"),

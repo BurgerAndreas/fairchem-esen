@@ -78,9 +78,6 @@ sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_dir
 # normal random batching (faster), instead of aligning batches to have the same number of atoms
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_batch.yaml
 
-# 300 sample subset
-sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml dataset.data_path=/project/aip-aspuru/aburger/fairchem-esen/data/300/8020 
-
 # other options
 # bf16=False steps=1e6 
 ```
@@ -97,7 +94,7 @@ We test on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz
 
 Generate predictions and store to disk as csv
 ```bash
-uv run scripts/esen_predict.py --checkpoint /path/to/ckpt.pt 
+sbatch scripts/killarney.sh scripts/esen_predict.py --checkpoint /path/to/ckpt.pt 
 ```
 
 Compute error metrics
