@@ -92,13 +92,14 @@ def main() -> None:
         }
     )
 
-    # Define summary metrics with minimize goal (lower is better)
+    # Define summary metrics with minimize summary (lower is better)
     metric_suffixes = ["mae_structure", "mse_structure", "rmse_structure", "mae_atom", "mse_atom", "rmse_atom"]
     for dataset_name in datasets.keys():
         for suffix in metric_suffixes:
-            wandb.define_metric(f"{dataset_name}/{suffix}", goal="minimize")
+            wandb.define_metric(f"{dataset_name}/{suffix}", summary="min")
 
     for name, xyz_path in datasets.items():
+        print(f"\n # Predicting {name}.")
         atoms_list = read(str(xyz_path), index=":")
 
         rows = []
@@ -128,7 +129,9 @@ def main() -> None:
         print(f"Predictions saved to {output_path}")
 
         # Compute metrics for this dataset
+        print(f"Total rows: {len(df)}")
         valid_rows = df.dropna(subset=['REF_energy'])
+        print(f"Valid rows: {len(valid_rows)}")
         if len(valid_rows) > 0:
             y_true = valid_rows['REF_energy'].values
             y_pred = valid_rows['ESEN_energy'].values
@@ -159,8 +162,7 @@ def main() -> None:
             # Set as summary metrics explicitly
             for key, value in metrics.items():
                 wandb.run.summary[key] = value
-            print(f"Metrics for {name}: MAE={mae_structure:.4f}, RMSE={rmse_structure:.4f} (per structure)")
-            print(f"                  MAE={mae_atom:.4f}, RMSE={rmse_atom:.4f} (per atom)")
+            print(f"Metrics for {name}: MAE={mae_structure*1e3:.4f}, RMSE={rmse_structure*1e3:.4f} [mH] (per structure)")
         else:
             print(f"Warning: No reference energies found for {name}, skipping metrics")
 
