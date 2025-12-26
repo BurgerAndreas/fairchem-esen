@@ -46,7 +46,7 @@ def main() -> None:
 
     calc = FAIRChemCalculator.from_model_checkpoint(
         name_or_path=str(checkpoint_path),
-        task_name="omol",
+        task_name=None,  # auto-detect from checkpoint (e.g., "custom" for fine-tuned models)
         device=None,
     )
 
