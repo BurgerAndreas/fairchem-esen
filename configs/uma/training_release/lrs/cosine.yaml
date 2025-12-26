@@ -8,5 +8,5 @@ runner:
       warmup_factor: 0.2
       warmup_epochs: 0.01
       lr_min_factor: 0.01
-      epochs: ${epochs}
-      steps: ${steps}
+      epochs: ${runner.max_epochs}
+      steps: ${runner.max_steps}

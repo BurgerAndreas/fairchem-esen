@@ -880,9 +880,13 @@ class MLIPTrainEvalUnit(
         # Need to manually reshard the FSDP ema model: https://github.com/pytorch/pytorch/issues/117421#issuecomment-1890948734, otherwise we don't update the ema model weights correctly
         if self.ema_model and self.train_strategy == TrainStrategy.FSDP:
             _reshard_fsdp(self.ema_model)
-        # Step ReduceLROnPlateau scheduler with validation loss (per-eval, not per-step)
+        # Store last validation loss for ReduceLROnPlateau (stepped per-epoch in on_train_epoch_end)
+        self.last_val_loss = metrics.get("val/loss", getattr(self, "last_val_loss", self.last_loss))
+
+    def on_train_epoch_end(self, state: State) -> None:
+        # Step ReduceLROnPlateau once per training epoch with last known validation loss
         if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
-            val_loss = metrics.get("val/loss", self.last_loss)
+            val_loss = getattr(self, "last_val_loss", self.last_loss)
             self.scheduler.step(val_loss)
 
     def get_finetune_model_config(self) -> DictConfig | None:

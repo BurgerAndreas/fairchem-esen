@@ -63,30 +63,28 @@ sbatch --time=1:00:00 scripts/killarney.sh scripts/xyz_to_lmdb.py --data-path da
 ```
 
 ### Training
-launch local training
+Launch local training
 ```bash
-uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml
-# uv run packages/fairchem-core/src/fairchem/core/_cli.py -c configs/uma/training_release/esen_sm_direct_lmbm_debug.yaml
+uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml +dbg=local
 ```
 
-launch training on the cluster
+Launch training on the cluster
 ```bash
-sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml
+# trillium
+sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml 
 
+# killarney
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml
 
 # normal random batching (faster), instead of aligning batches to have the same number of atoms
-sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_batch.yaml
-
-# other options
-# bf16=False steps=1e6 
+sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml batching=regular
 ```
 
-To resume training, point at `resume.yaml` of the checkoint instead of the original config. You might need `runner.abc=z` For example:
+To resume training, point at `resume.yaml` of the checkpoint instead of the original config:
 ```bash
-sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints/step_XXXXX/resume.yaml runner.max_steps=100000
+sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/XXXXX/checkpoints/step_XXXXX/resume.yaml runner.max_epochs=2000
 ```
-Only override what you want to change (e.g. bump epochs from the original value to a higher one if you want to train longer).
+Only override args to change (e.g. bump epochs from the original value to a higher one if you want to train longer).
 
 ### Evaluation
 

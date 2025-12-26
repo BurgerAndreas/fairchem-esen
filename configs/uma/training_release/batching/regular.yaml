@@ -1,0 +1,15 @@
+# @package _global_
+
+batch_size: 32
+
+train_dataloader:
+  batch_sampler_fn:
+    _target_: fairchem.core.common.data_parallel.BalancedBatchSampler
+    batch_size: ${batch_size}
+    on_error: "warn_and_no_balance"
+
+eval_dataloader:
+  batch_sampler_fn:
+    _target_: fairchem.core.common.data_parallel.BalancedBatchSampler
+    batch_size: ${batch_size}
+    on_error: "warn_and_no_balance"

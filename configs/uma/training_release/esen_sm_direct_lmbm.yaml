@@ -6,6 +6,7 @@ defaults:
   - tasks: custom_energy
   - _self_
   - lrs: cosine
+  - batching: maxatoms # maxatoms or regular
 
 # Data path for cluster
 dataset:
@@ -39,9 +40,6 @@ moe_layer_type: pytorch
 num_moe_experts: 0
 max_neighbors: 30
 cutoff_radius: 6
-epochs: null
-steps: 50000
-max_atoms: 256
 bf16: True
 # cpu_graph: True
 otf_graph: False
@@ -81,9 +79,7 @@ train_dataloader:
   _target_: fairchem.core.components.common.dataloader_builder.get_dataloader
   dataset: ${train_dataset}
   batch_sampler_fn:
-    _target_: fairchem.core.datasets.samplers.max_atom_distributed_sampler.MaxAtomDistributedBatchSampler
     _partial_: True
-    max_atoms: ${max_atoms}
     shuffle: True
     seed: 0
   num_workers: ${cluster.dataloader_workers}
@@ -96,9 +92,7 @@ eval_dataloader:
   _target_: fairchem.core.components.common.dataloader_builder.get_dataloader
   dataset: ${val_dataset}
   batch_sampler_fn:
-    _target_: fairchem.core.datasets.samplers.max_atom_distributed_sampler.MaxAtomDistributedBatchSampler
     _partial_: True
-    max_atoms: ${max_atoms}
     shuffle: False
     seed: 0
   num_workers: ${cluster.dataloader_workers}
@@ -140,9 +134,10 @@ runner:
     print_every: 10
     clip_grad_norm: 100
     bf16: ${bf16}
-  max_epochs: ${epochs}
-  max_steps: ${steps}
-  evaluate_every_n_steps: 5000
+  max_epochs: 1000
+  max_steps: null # 50000
+  evaluate_every_n_steps: null
+  evaluate_every_n_epochs: 10
   callbacks:
     - _target_: fairchem.core.common.profiler_utils.ProfilerCallback
       job_config: ${job}

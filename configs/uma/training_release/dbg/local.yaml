@@ -1,0 +1,19 @@
+# @package _global_
+
+batching: regular
+cluster: local
+
+dataset:
+  data_path: /ssd/Code/fairchem-esen/data/all/8020
+
+runner:
+  max_epochs: 2
+
+batch_size: 2
+
+job:
+  logs_dir: /ssd/Code/fairchem-esen/logs
+  logger:
+    wandb_dir: /ssd/Code/fairchem-esen/wandb
+  debug: True
+  run_dir: /ssd/Code/fairchem-esen/checkpoint/run_dir # ${cluster.run_dir}

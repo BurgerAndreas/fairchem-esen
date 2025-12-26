@@ -1,0 +1,14 @@
+# @package _global_
+
+max_atoms: 256
+
+train_dataloader:
+  batch_sampler_fn:
+    _target_: fairchem.core.datasets.samplers.max_atom_distributed_sampler.MaxAtomDistributedBatchSampler
+    max_atoms: ${max_atoms}
+
+eval_dataloader:
+  batch_sampler_fn:
+    _target_: fairchem.core.datasets.samplers.max_atom_distributed_sampler.MaxAtomDistributedBatchSampler
+    max_atoms: ${max_atoms}
+  num_workers: ${cluster.dataloader_workers}

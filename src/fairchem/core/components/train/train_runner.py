@@ -128,6 +128,7 @@ class TrainEvalRunner(Runner):
         callbacks: list[Callback] | None = None,
         max_epochs: int | None = 1,
         evaluate_every_n_steps: Optional[int] = None,
+        evaluate_every_n_epochs: Optional[int] = None,
         max_steps: int | None = None,
     ):
         self.train_dataloader = train_dataloader
@@ -137,7 +138,8 @@ class TrainEvalRunner(Runner):
         self.max_epochs = max_epochs
         self.max_steps = max_steps
         self.evaluate_every_n_steps = evaluate_every_n_steps
-
+        self.evaluate_every_n_epochs = evaluate_every_n_epochs
+        
         checkpoint_callbacks = [
             c for c in callbacks if isinstance(c, TrainCheckpointCallback)
         ]
@@ -164,6 +166,7 @@ class TrainEvalRunner(Runner):
             max_steps=self.max_steps,
             callbacks=self.callbacks,
             evaluate_every_n_steps=self.evaluate_every_n_steps,
+            evaluate_every_n_epochs=self.evaluate_every_n_epochs,
         )
 
     def save_state(self, checkpoint_location: str, is_preemption: bool = False) -> bool:
