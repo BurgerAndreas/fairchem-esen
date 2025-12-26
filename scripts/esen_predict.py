@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import wandb
+import yaml
 from ase.io import read
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
@@ -46,7 +47,7 @@ def main() -> None:
     args = parse_args()
 
     checkpoint_path = args.checkpoint
-    
+
     # if checkpoint path is a directory, find latest step checkpoint
     # /scratch/aburger/checkpoint/uma/202512-1717-3450-f34f/checkpoints
     if checkpoint_path.is_dir():
@@ -54,9 +55,9 @@ def main() -> None:
         checkpoint_path = list(checkpoint_path.glob("step_*"))[-1]
         # get checkpoint file
         checkpoint_path = list(checkpoint_path.glob("*.pt"))[-1]
-    
+
     checkpoint_path = checkpoint_path.resolve()
-    
+
     if not checkpoint_path.exists():
         raise FileNotFoundError(f"Checkpoint file {checkpoint_path} does not exist")
 
@@ -66,6 +67,10 @@ def main() -> None:
         device=None,
     )
     
+    # get training config
+    with open(checkpoint_path / "resume.yaml", 'r') as f:
+        training_config = yaml.safe_load(f)
+    
     # Initialize wandb
     run_name = args.wandb_run_name or checkpoint_path.stem
     wandb.init(
@@ -73,6 +78,7 @@ def main() -> None:
         name=run_name,
         config={
             "checkpoint_path": str(checkpoint_path),
+            "training_config": training_config,
         }
     )
 
