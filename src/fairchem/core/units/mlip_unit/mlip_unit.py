@@ -782,14 +782,14 @@ class MLIPTrainEvalUnit(
                 "train/lr": current_lr,
                 "train/step": step,
                 "train/epoch": epoch,
-                "train/samples_per_second(approx)": num_samples_local
-                * self.dp_world_size
-                / float(time_delta),
-                "train/atoms_per_second(approx)": num_atoms_local
-                * self.dp_world_size
-                / float(time_delta),
-                "train/num_atoms_on_rank": num_atoms_local,
-                "train/num_samples_on_rank": num_samples_local,
+                # "train/samples_per_second(approx)": num_samples_local
+                # * self.dp_world_size
+                # / float(time_delta),
+                # "train/atoms_per_second(approx)": num_atoms_local
+                # * self.dp_world_size
+                # / float(time_delta),
+                # "train/num_atoms_on_rank": num_atoms_local,
+                # "train/num_samples_on_rank": num_samples_local,
             }
 
             if self.logger:

@@ -131,7 +131,7 @@ runner:
     #   factor: 0.5
     #   patience: 10
     #   min_lr: 1e-6
-    print_every: 10
+    print_every: 100
     clip_grad_norm: 100
     bf16: ${bf16}
   max_epochs: 1000
