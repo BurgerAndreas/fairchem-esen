@@ -84,7 +84,7 @@ sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_dir
 
 To resume training, point at `resume.yaml` of the checkoint instead of the original config. You might need `runner.abc=z` For example:
 ```bash
-sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints/step_XXXXX/resume.yaml runner.epochs=1000
+sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints/step_XXXXX/resume.yaml runner.max_steps=100000
 ```
 Only override what you want to change (e.g. bump epochs from the original value to a higher one if you want to train longer).
 
@@ -104,7 +104,7 @@ uv run scripts/compare_esen_predictions.py
 
 
 ### How we got our model and training config
-We will use the eSEN config from the OMol release https://huggingface.co/facebook/OMol25/blob/main/checkpoints/esen_sm_direct_all.pt
+We will use the eSEN config from the OMol25 release https://huggingface.co/facebook/OMol25/blob/main/checkpoints/esen_sm_direct_all.pt
 ```bash
 uv run scripts/inspect_esen_ckpt.py 
 ```
