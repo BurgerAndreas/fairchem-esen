@@ -82,6 +82,12 @@ def main() -> None:
         }
     )
 
+    # Define summary metrics with minimize goal (lower is better)
+    metric_suffixes = ["mae_structure", "mse_structure", "rmse_structure", "mae_atom", "mse_atom", "rmse_atom"]
+    for dataset_name in datasets.keys():
+        for suffix in metric_suffixes:
+            wandb.define_metric(f"{dataset_name}/{suffix}", goal="minimize")
+
     datasets = {
         "qm7": Path("data/all/8020/qm7_validation.xyz"),
         "amino_acids": Path("data/amino_acids.xyz"),
@@ -147,13 +153,17 @@ def main() -> None:
                 f"{name}/rmse_atom": rmse_atom,
                 f"{name}/num_structures": len(valid_rows),
             }
-            wandb.log(metrics)
+            wandb.log(metrics, step=0)
+
+            # Set as summary metrics explicitly
+            for key, value in metrics.items():
+                wandb.run.summary[key] = value
             print(f"Metrics for {name}: MAE={mae_structure:.4f}, RMSE={rmse_structure:.4f} (per structure)")
             print(f"                  MAE={mae_atom:.4f}, RMSE={rmse_atom:.4f} (per atom)")
         else:
             print(f"Warning: No reference energies found for {name}, skipping metrics")
 
-    print("\nAll predictions saved")
+    print("\nAll predictions saved!")
     wandb.finish()
 
 if __name__ == "__main__":
