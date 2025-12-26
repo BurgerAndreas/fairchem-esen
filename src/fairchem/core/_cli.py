@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import re
 from typing import TYPE_CHECKING
 
 import hydra
@@ -28,6 +29,53 @@ if TYPE_CHECKING:
 
 # this effects the cli only since the actual job will be run in subprocesses or remoe
 logging.basicConfig(level=logging.INFO)
+
+
+def resolve_config_path(config_path: str) -> str:
+    """Resolve config path, auto-detecting latest checkpoint if a directory is passed.
+
+    If config_path is a directory (e.g., /path/to/checkpoints), finds the latest
+    step_* checkpoint directory and returns the path to its resume.yaml.
+
+    Args:
+        config_path: Path to a YAML config file or a checkpoint directory.
+
+    Returns:
+        Path to the resolved YAML config file.
+    """
+    if not os.path.isdir(config_path):
+        return config_path
+
+    # Find all step_* directories
+    step_dirs = []
+    for name in os.listdir(config_path):
+        match = re.match(r"step_(\d+)$", name)
+        if match:
+            step_num = int(match.group(1))
+            step_path = os.path.join(config_path, name)
+            if os.path.isdir(step_path):
+                step_dirs.append((step_num, step_path))
+
+    if not step_dirs:
+        raise ValueError(
+            f"Directory {config_path} does not contain any step_* checkpoint directories. "
+            "Please pass a YAML config file or a valid checkpoint directory."
+        )
+
+    # Sort by step number and get the latest
+    step_dirs.sort(key=lambda x: x[0], reverse=True)
+    latest_step_num, latest_step_dir = step_dirs[0]
+
+    resume_yaml = os.path.join(latest_step_dir, "resume.yaml")
+    if not os.path.isfile(resume_yaml):
+        raise ValueError(
+            f"Latest checkpoint directory {latest_step_dir} does not contain resume.yaml"
+        )
+
+    logging.info(f"Auto-detected latest checkpoint: step_{latest_step_num}")
+    logging.info(f"Using resume config: {resume_yaml}")
+
+    return resume_yaml
 
 
 def get_canonical_config(config: DictConfig, yaml_content: str | None = None) -> DictConfig:
@@ -76,11 +124,11 @@ def get_hydra_config_from_yaml(
     os.environ["HYDRA_FULL_ERROR"] = "1"
     config_directory = os.path.dirname(os.path.abspath(config_yml))
     config_name = os.path.basename(config_yml)
-    
+
     # Read YAML file to check for interpolation patterns before Hydra resolves them
-    with open(config_yml, "r") as f:
+    with open(config_yml) as f:
         yaml_content = f.read()
-    
+
     hydra.initialize_config_dir(config_directory, version_base="1.1")
     cfg = hydra.compose(config_name=config_name, overrides=overrides_args)
     # merge default structured config with initialized job object
@@ -97,7 +145,9 @@ def main(
         parser.add_argument("-c", "--config", type=str, required=True)
         args, override_args = parser.parse_known_args()
 
-    cfg = get_hydra_config_from_yaml(args.config, override_args)
+    # Resolve config path - auto-detect latest checkpoint if directory is passed
+    config_path = resolve_config_path(args.config)
+    cfg = get_hydra_config_from_yaml(config_path, override_args)
     log_dir = cfg.job.metadata.log_dir
     os.makedirs(cfg.job.run_dir, exist_ok=True)
     os.makedirs(log_dir, exist_ok=True)
@@ -108,7 +158,7 @@ def main(
     logging.info(f"saved canonical config to {cfg.job.metadata.config_path}")
 
     scheduler_cfg = cfg.job.scheduler
-    
+
     # Auto-detect if we're running inside a SLURM job and switch to LOCAL mode
     if (os.getenv("SLURM_JOB_ID") or os.getenv("SLURM_SUBMIT_HOST")) and scheduler_cfg.mode == SchedulerType.SLURM:
         logging.warning(
@@ -122,7 +172,7 @@ def main(
                 f"Setting ranks_per_node from {scheduler_cfg.ranks_per_node} to 1 for single GPU training."
             )
             scheduler_cfg.ranks_per_node = 1
-    
+
     # logging.info(f"Running fairchemv2 cli with {cfg}")
     if scheduler_cfg.mode == SchedulerType.SLURM:  # Run on cluster
         assert (
