@@ -52,10 +52,11 @@ def main() -> None:
     # /scratch/aburger/checkpoint/uma/202512-1717-3450-f34f/checkpoints
     if checkpoint_path.is_dir():
         # get latest checkpoint dir
-        checkpoint_path = list(checkpoint_path.glob("step_*"))[-1]
+        checkpoint_dir = list(checkpoint_path.glob("step_*"))[-1]
         # get checkpoint file
-        checkpoint_path = list(checkpoint_path.glob("*.pt"))[-1]
-
+        checkpoint_path = list(checkpoint_dir.glob("*.pt"))[-1]
+    else:
+        checkpoint_dir = checkpoint_path.parent
     checkpoint_path = checkpoint_path.resolve()
 
     if not checkpoint_path.exists():
