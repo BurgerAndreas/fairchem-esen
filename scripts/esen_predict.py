@@ -69,7 +69,7 @@ def main() -> None:
     )
     
     # get training config
-    with open(checkpoint_path / "resume.yaml", 'r') as f:
+    with open(checkpoint_dir / "resume.yaml", 'r') as f:
         training_config = yaml.safe_load(f)
     
     # Initialize wandb
