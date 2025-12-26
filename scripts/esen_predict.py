@@ -45,6 +45,15 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    
+    datasets = {
+        "qm7": Path("data/all/8020/qm7_validation.xyz"),
+        "amino_acids": Path("data/amino_acids.xyz"),
+        "alcohols": Path("data/alcohols.xyz"),
+        "alkanes": Path("data/alkanes.xyz"),
+        "pubchem": Path("data/pubchem.xyz"),
+        "stretching_mol": Path("data/stretching_mol.xyz"),
+    }
 
     checkpoint_path = args.checkpoint
 
@@ -88,15 +97,6 @@ def main() -> None:
     for dataset_name in datasets.keys():
         for suffix in metric_suffixes:
             wandb.define_metric(f"{dataset_name}/{suffix}", goal="minimize")
-
-    datasets = {
-        "qm7": Path("data/all/8020/qm7_validation.xyz"),
-        "amino_acids": Path("data/amino_acids.xyz"),
-        "alcohols": Path("data/alcohols.xyz"),
-        "alkanes": Path("data/alkanes.xyz"),
-        "pubchem": Path("data/pubchem.xyz"),
-        "stretching_mol": Path("data/stretching_mol.xyz"),
-    }
 
     for name, xyz_path in datasets.items():
         atoms_list = read(str(xyz_path), index=":")
