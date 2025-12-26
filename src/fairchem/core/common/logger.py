@@ -154,7 +154,7 @@ class WandBLogger(Logger):
         table = wandb.Table(dataframe=dataframe)
         wandb.log({name: table}, step=step, commit=commit)
 
-    def log_summary(self, summary_dict: dict[str, Any]):
+    def log_summary(self, summary_dict: dict[str, Any], step: int | None = None):
         for k, v in summary_dict.items():
             wandb.run.summary[k] = v
 
@@ -294,6 +294,9 @@ class WandBSingletonLogger:
     def log(
         self, update_dict: dict, step: int | None = None, commit=False, split: str = ""
     ) -> None:
+        """
+        commit: If true, finalize and upload the step. If false, then accumulate data for the step
+        """
         # HACK: this is really ugly logic here for backward compat but we should get rid of.
         # the split string shouldn't inserted here
         if split != "":

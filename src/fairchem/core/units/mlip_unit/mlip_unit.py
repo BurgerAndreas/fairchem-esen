@@ -549,7 +549,7 @@ class MLIPTrainEvalUnit(
         self.num_params = sum(p.numel() for p in model.parameters())
         if self.logger:
             self.logger.log_summary(
-                {"num_params": self.num_params, "dp_world_size": self.dp_world_size}
+                {"num_params": self.num_params, "dp_world_size": self.dp_world_size}, 
             )
 
         model.to(torch.device(get_device_for_local_rank()))
@@ -653,7 +653,7 @@ class MLIPTrainEvalUnit(
                     {
                         "train/fwd_flops": flops,
                         "train/fwd_flops_per_atom_param": flops_per_atom_param,
-                    }
+                    },
                 )
             if "edge_index" in data:
                 num_edges_local = data.edge_index.shape[1]
@@ -876,7 +876,8 @@ class MLIPTrainEvalUnit(
     def on_eval_epoch_end(self, state: State) -> None:
         metrics = self.eval_unit.on_eval_epoch_end(state)
         if self.logger is not None:
-            self.logger.log(metrics, commit=False)
+            step = self.train_progress.num_steps_completed
+            self.logger.log(metrics, step=step, commit=False)
         # Need to manually reshard the FSDP ema model: https://github.com/pytorch/pytorch/issues/117421#issuecomment-1890948734, otherwise we don't update the ema model weights correctly
         if self.ema_model and self.train_strategy == TrainStrategy.FSDP:
             _reshard_fsdp(self.ema_model)
@@ -1101,7 +1102,8 @@ class MLIPEvalUnit(EvalUnit[AtomicData]):
         log_dict["val/epoch"] = self.eval_progress.num_epochs_completed
 
         if self.logger is not None:
-            self.logger.log(log_dict, commit=True)
+            step = self.train_progress.num_steps_completed
+            self.logger.log(log_dict, step=step, commit=True)
 
         log_str = "".join(
             f"  {k}: {log_dict[k]:.4f}\n" for k in sorted(log_dict.keys())
