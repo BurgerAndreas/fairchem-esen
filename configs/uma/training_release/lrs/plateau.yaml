@@ -11,5 +11,8 @@ runner:
       # patience (int): The number of allowed epochs with no improvement after
       #     which the learning rate will be reduced
       factor: 0.9
-      patience: 5 # in epochs
+      patience: 10 # in epochs
+      # Threshold for measuring the new optimum
+      threshold: 1e-4
+      threshold_mode: rel
       min_lr: 1e-6

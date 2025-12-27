@@ -8,6 +8,14 @@ defaults:
   - lrs: cosine
   - batching: maxatoms # maxatoms or regular
 
+# Mace uses 
+# hidden_irreps: 128x0e + 128x1o # + 128x2e 
+backbone:
+  max_num_elements: 16 # H, C, O, N, F=9 S=16
+  sphere_channels: 128
+  lmax: 1
+  mmax: 1 # from -lmax to lmax
+
 # Data path for cluster
 dataset:
   # data_path: /project/rrg-aspuru/aburger/fairchem-esen/data_new/1090
