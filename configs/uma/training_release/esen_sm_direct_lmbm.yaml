@@ -137,7 +137,7 @@ runner:
   max_epochs: 1000
   max_steps: null # 50000
   evaluate_every_n_steps: null
-  evaluate_every_n_epochs: 10
+  evaluate_every_n_epochs: 5
   callbacks:
     - _target_: fairchem.core.common.profiler_utils.ProfilerCallback
       job_config: ${job}
