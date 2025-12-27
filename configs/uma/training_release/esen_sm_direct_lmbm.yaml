@@ -15,6 +15,10 @@ backbone:
   sphere_channels: 128
   lmax: 1
   mmax: 1 # from -lmax to lmax
+  # Disable PBC for molecules
+  use_pbc: False
+  use_pbc_single: False
+  always_use_pbc: False
 
 # Data path for cluster
 dataset:
@@ -60,12 +64,6 @@ direct_forces: False
 dataset_list: ["custom"]
 
 exclude_keys: []
-
-# Disable PBC for molecules
-backbone:
-  use_pbc: False
-  use_pbc_single: False
-  always_use_pbc: False
 
 train_dataset:
   _target_: fairchem.core.datasets.mt_concat_dataset.create_concat_dataset
