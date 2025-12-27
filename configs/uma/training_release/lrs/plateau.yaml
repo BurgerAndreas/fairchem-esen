@@ -10,6 +10,6 @@ runner:
       #     reduced. new_lr = lr * factor. Default: 0.1.
       # patience (int): The number of allowed epochs with no improvement after
       #     which the learning rate will be reduced
-      factor: 0.8
-      patience: 50 # in epochs
-      min_lr: 1e-8
+      factor: 0.9
+      patience: 5 # in epochs
+      min_lr: 1e-6
