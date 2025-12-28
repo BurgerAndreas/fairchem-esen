@@ -15,4 +15,4 @@ runner:
       # Threshold for measuring the new optimum
       threshold: 1e-4
       threshold_mode: rel
-      min_lr: 1e-6
+      min_lr: 1e-5
