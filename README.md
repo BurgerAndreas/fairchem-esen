@@ -80,26 +80,21 @@ sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_dir
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml batching=regular
 ```
 
-To resume training, point at `resume.yaml` of the checkpoint instead of the original config:
+To resume training, point at `resume.yaml` of the checkpoint instead of the original config.
+Only override args to change (e.g. bump epochs from the original value to a higher one if you want to train longer):
 ```bash
 sbatch scripts/killarney.sh fairchem -c /scratch/aburger/checkpoint/uma/XXXXX/checkpoints/step_XXXXX/resume.yaml runner.max_epochs=2000
 ```
-Only override args to change (e.g. bump epochs from the original value to a higher one if you want to train longer).
 
 ### Evaluation
 
-We test on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz
-
+We test on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz, bond_stretching.xyz:
 Generate predictions and store to disk as csv
 ```bash
 uv run scripts/esen_predict.py --checkpoint /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints
-sbatch scripts/killarney.sh scripts/esen_predict.py --checkpoint 
+sbatch scripts/killarney.sh scripts/esen_predict.py --checkpoint ...
 ```
 
-Compute error metrics
-```bash
-uv run scripts/compare_esen_predictions.py
-```
 
 
 ### How we got our model and training config
@@ -117,22 +112,13 @@ Other possible config we did not use, from https://github.com/facebookresearch/f
 - We train only on energy labels (no forces or other properties)
 - Energy is stored as REF_energy in the Properties line
 - Energy values are e_ccsd - e_mp2 (correlation energy difference)
+- Energy units are Hartree
 - Coordinates are in Angstroms
 - Format is compatible with ASE, so most Python ML libraries can load it
 
 
-### How the Mace baseline was trained
-default train config
-```bash
-mace_run_train --config train_mace_10_90_split.yaml
-```
-
-Files that handle Mace's data format
-- mace/tools/torch_geometric/dataloader.py Extends PyTorch's DataLoader to handle batching of AtomicData objects via custom Collater for graph 
-- mace/tools/torch_geometric/batch.py (for Batch.from_data_list)
-- mace/tools/torch_geometric/data.py (for Data class)
-- mace/data/atomic_data.py (for AtomicData class)
-
+---
+---
 ---
 
 # `fairchem` by the FAIR Chemistry team
