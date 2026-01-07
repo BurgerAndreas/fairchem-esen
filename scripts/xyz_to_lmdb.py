@@ -34,7 +34,6 @@ import argparse
 import multiprocessing as mp
 import pickle
 from pathlib import Path
-from re import X
 
 import ase.io
 import lmdb
@@ -44,6 +43,28 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from tqdm import tqdm
 
 from fairchem.core.datasets.atomic_data import AtomicData
+
+
+def _parse_vector3(value) -> np.ndarray:
+    """
+    Parse a 3-vector from an extended XYZ info value.
+
+    Expected formats:
+    - list/tuple/np.ndarray of length 3
+    - string like "0.1 0.2 0.3" (optionally quoted) or "0.1,0.2,0.3"
+    """
+    if isinstance(value, (list, tuple, np.ndarray)):
+        arr = np.asarray(value, dtype=np.float32).reshape(-1)
+    elif isinstance(value, str):
+        s = value.strip().strip('"').strip("'").replace(",", " ")
+        parts = [p for p in s.split() if p]
+        arr = np.asarray([float(p) for p in parts], dtype=np.float32)
+    else:
+        arr = np.asarray(value, dtype=np.float32).reshape(-1)
+
+    if arr.shape[0] != 3:
+        raise ValueError(f"Expected a 3-vector, got shape {arr.shape} from value {value!r}")
+    return arr
 
 
 def process_xyz_file(mp_arg):
@@ -95,6 +116,20 @@ def process_xyz_file(mp_arg):
             molecule_cell_size=args.molecule_cell_size,
             sid=str(xyz_file),
         )
+
+        # Optionally attach dipole moment (graph-level vector) if present in extended XYZ info.
+        dipole_value = None
+        for k in args.dipole_keys:
+            if k in atoms.info:
+                dipole_value = atoms.info[k]
+                break
+        if dipole_value is not None:
+            dip = _parse_vector3(dipole_value)
+            setattr(
+                data_object,
+                args.dipole_out_key,
+                torch.tensor(dip, dtype=torch.float32).view(1, 3),
+            )
         
         # Store in LMDB
         txn = db.begin(write=True)
@@ -192,8 +227,8 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--num-workers",
         type=int,
-        default=1,
-        help="Number of parallel workers (default: 1)",
+        default=0,
+        help="Number of parallel workers (default: 0)",
     )
     parser.add_argument(
         "--r-edges",
@@ -209,14 +244,29 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--max-neigh",
         type=int,
-        default=30,
-        help="Maximum number of neighbors (default: 30)",
+        default=1000,
+        help="Maximum number of neighbors (default: 1000)",
     )
     parser.add_argument(
         "--molecule-cell-size",
         type=float,
         default=20.0,
         help="Cell size for molecules (default: 20.0)",
+    )
+    parser.add_argument(
+        "--dipole-keys",
+        nargs="*",
+        default=["dipole", "REF_dipole"],
+        help=(
+            "Keys to look for in the extended XYZ comment line / atoms.info for a 3-vector dipole moment. "
+            "First match wins. (default: dipole REF_dipole)"
+        ),
+    )
+    parser.add_argument(
+        "--dipole-out-key",
+        type=str,
+        default="dipole",
+        help="Key name to store in LMDB/AtomicData (as a (1,3) float tensor). (default: dipole)",
     )
     return parser
 

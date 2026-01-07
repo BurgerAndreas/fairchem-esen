@@ -823,6 +823,39 @@ class Linear_Force_Head(nn.Module, HeadInterface):
         return {"forces": forces}
 
 
+class Linear_Dipole_Head(nn.Module, HeadInterface):
+    """System-level dipole head.
+
+    Predict a per-atom equivariant vector contribution from l=1 features and sum
+    over atoms to obtain a per-system dipole vector (shape: [n_systems, 3]).
+    """
+
+    def __init__(self, backbone: eSCNMDBackbone) -> None:
+        super().__init__()
+        self.linear = SO3_Linear(backbone.sphere_channels, 1, lmax=1)
+
+    def forward(
+        self, data_dict: AtomicData, emb: dict[str, torch.Tensor]
+    ) -> dict[str, torch.Tensor]:
+        node_vec = self.linear(emb["node_embedding"].narrow(1, 0, 4))
+        node_vec = node_vec.narrow(1, 1, 3)
+        node_vec = node_vec.view(-1, 3).contiguous()
+
+        dipole_part = torch.zeros(
+            (len(data_dict["natoms"]), 3),
+            device=node_vec.device,
+            dtype=node_vec.dtype,
+        )
+        dipole_part.index_add_(0, data_dict["batch"], node_vec)
+
+        if gp_utils.initialized():
+            dipole = gp_utils.reduce_from_model_parallel_region(dipole_part)
+        else:
+            dipole = dipole_part
+
+        return {"dipole": dipole}
+
+
 def compose_tensor(
     trace: torch.Tensor,
     l2_symmetric: torch.Tensor,

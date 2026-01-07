@@ -2,8 +2,7 @@ defaults:
   - cluster: one
   - backbone: K4L2
   - dataset: custom_lmdb # custom_xyz
-  # - tasks: custom_direct
-  - tasks: custom_energy # custom_energy_dipole
+  - tasks: custom_energy_dipole
   - _self_
   - lrs: cosine
   - batching: maxatoms # maxatoms or regular
@@ -112,8 +111,8 @@ eval_dataloader:
 heads:
   energy:
     module: fairchem.core.models.uma.escn_md.MLP_Energy_Head
-  # dipole:
-  #   module: fairchem.core.models.uma.escn_md.Linear_Dipole_Head
+  dipole:
+    module: fairchem.core.models.uma.escn_md.Linear_Dipole_Head
   # forces:
   #   module: fairchem.core.models.uma.escn_md.Linear_Force_Head
 

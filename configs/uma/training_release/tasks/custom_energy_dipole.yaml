@@ -1,0 +1,53 @@
+- _target_: fairchem.core.units.mlip_unit.mlip_unit.Task
+  name: energy
+  level: system
+  property: energy
+  loss_fn:
+    _target_: fairchem.core.modules.loss.DDPMTLoss
+    loss_fn:
+      _target_: fairchem.core.modules.loss.PerAtomMAELoss
+    coefficient: 0 # only train on dipole, not energy
+  out_spec:
+    dim: [1]
+    dtype: float32
+  normalizer:
+    _target_: fairchem.core.modules.normalization.normalizer.Normalizer
+    mean: 0.0
+    rmsd: 1.0
+    # fit:
+    #   targets: ["energy"]
+    #   batch_size: 32
+    #   num_batches: null  # null = use all data, or set a number to limit (e.g., 100)
+  datasets:
+    - custom
+  metrics:
+    - mae
+    - per_atom_mae
+
+- _target_: fairchem.core.units.mlip_unit.mlip_unit.Task
+  name: dipole
+  level: system
+  property: dipole
+  loss_fn:
+    _target_: fairchem.core.modules.loss.DDPMTLoss
+    loss_fn:
+      _target_: fairchem.core.modules.loss.L2NormLoss
+    coefficient: 1
+  out_spec:
+    dim: [3]
+    dtype: float32
+  normalizer:
+    _target_: fairchem.core.modules.normalization.normalizer.Normalizer
+    mean: 0.0
+    rmsd: 1.0
+    # fit:
+    #   targets: ["dipole"]
+    #   batch_size: 32
+    #   num_batches: null  # null = use all data, or set a number to limit (e.g., 100)
+  datasets:
+    - custom
+  metrics:
+    - mae
+    - cosine_similarity
+    - magnitude_error
+
