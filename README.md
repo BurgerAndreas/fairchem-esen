@@ -75,6 +75,9 @@ sbatch scripts/trillium.sh fairchem -c configs/uma/training_release/esen_sm_dire
 # killarney
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml
 
+# limit training to 100 samples
+sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml dataset.custom_train.splits.train.first_n=100
+
 # normal random batching (faster), instead of aligning batches to have the same number of atoms
 sbatch scripts/killarney.sh fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml batching=regular
 

@@ -4,6 +4,7 @@ custom_train:
   splits:
     train:
       src: ${dataset.data_path}/train/qm7_train.lmdb
+      first_n: null  # Set to limit number of samples (e.g., 100)
   format: lmdb
   transforms:
     common_transform:
