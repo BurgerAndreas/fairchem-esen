@@ -25,7 +25,7 @@ backbone:
 dataset:
   # data_path: /project/rrg-aspuru/aburger/fairchem-esen/data_new/1090
   # data_path: /scratch/aburger/fairchem-esen/data_new/1090 # Trillium
-  data_path: /project/aip-aspuru/aburger/fairchem-esen/data/all/8020 # Killarney 
+  data_path: /project/aip-aspuru/aburger/fairchem-esen/data/dipole/ # Killarney 
 
 job:
   device_type: ${cluster.device}
