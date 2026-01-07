@@ -61,6 +61,12 @@ sbatch --time=1:00:00 scripts/killarney.sh scripts/xyz_to_lmdb.py --data-path da
 sbatch --time=1:00:00 scripts/killarney.sh scripts/xyz_to_lmdb.py --data-path data/all/8020/val/ --output-path data/all/8020/val/ --pattern "*_validation.xyz" --r-edges --radius 6.0 
 ```
 
+Dipole
+```bash
+sbatch --time=1:00:00 scripts/killarney.sh scripts/xyz_to_lmdb.py --data-path data/dipole/train/ --output-path data/dipole/train/ --pattern "*_train.xyz" --r-edges --radius 6.0 
+sbatch --time=1:00:00 scripts/killarney.sh scripts/xyz_to_lmdb.py --data-path data/dipole/val/ --output-path data/dipole/val/ --pattern "*_validation.xyz" --r-edges --radius 6.0 
+```
+
 ### Training
 Launch local training
 ```bash

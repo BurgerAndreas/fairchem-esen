@@ -227,8 +227,8 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--num-workers",
         type=int,
-        default=0,
-        help="Number of parallel workers (default: 0)",
+        default=1,
+        help="Number of parallel workers (default: 1)",
     )
     parser.add_argument(
         "--r-edges",
