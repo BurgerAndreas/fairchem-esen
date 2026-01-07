@@ -191,9 +191,15 @@ def get_output_mask(batch: AtomicData, task: Task) -> dict[str, torch.Tensor]:
     indexing map. s.t. we can index like batch.oc20_forces[oc20_map].
     """
 
-    output_masks = {task.name: torch.isfinite(batch[task.name])}
-    if "forces" in task.name:
-        output_masks[task.name] = output_masks[task.name].all(dim=1)
+    # For most tasks we want a per-item (per-structure or per-atom) boolean mask.
+    # Some targets are vector/tensor-valued (e.g. dipole: [B, 3], forces: [N, 3]).
+    # Reduce those to a 1D mask so downstream dataset masking and loss functions
+    # behave consistently. Stress is handled separately below because it expects
+    # an element-wise mask with the same shape as the prediction/target.
+    mask = torch.isfinite(batch[task.name])
+    if "stress" not in task.name and mask.ndim > 1:
+        mask = mask.view(mask.shape[0], -1).all(dim=1)
+    output_masks = {task.name: mask}
 
     for dset in set(batch.dataset_name):
         dset_mask = torch.from_numpy(np.array(batch.dataset_name) == dset).to(

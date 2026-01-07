@@ -71,6 +71,7 @@ sbatch --time=1:00:00 scripts/killarney.sh scripts/xyz_to_lmdb.py --data-path da
 Launch local training
 ```bash
 uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm.yaml +dbg=local
+uv run fairchem -c configs/uma/training_release/esen_sm_direct_lmbm_dipole.yaml +dbg=local_dipole
 ```
 
 Launch training on the cluster
