@@ -53,6 +53,8 @@ def main() -> None:
         "amino_acids": Path("data/amino_acids.xyz"),
         "pubchem": Path("data/pubchem.xyz"),
         "stretching_mol": Path("data/stretching_mol.xyz"),
+        "dihedral_scan": Path("data/dihedral_scan.xyz"),
+        
     }
 
     checkpoint_path = args.checkpoint
