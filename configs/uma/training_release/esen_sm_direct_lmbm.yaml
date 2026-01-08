@@ -42,7 +42,7 @@ job:
   debug: ${cluster.debug}
   run_dir: ${cluster.run_dir}
   logs_dir: /scratch/aburger/esen_logs
-  run_name: uma_sm_direct_customdata
+  run_name: eSEN
   logger:
     _target_: fairchem.core.common.logger.WandBSingletonLogger.init_wandb
     _partial_: true
