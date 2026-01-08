@@ -112,10 +112,6 @@ eval_dataloader:
 heads:
   energy:
     module: fairchem.core.models.uma.escn_md.MLP_Energy_Head
-  # dipole:
-  #   module: fairchem.core.models.uma.escn_md.Linear_Dipole_Head
-  # forces:
-  #   module: fairchem.core.models.uma.escn_md.Linear_Force_Head
 
 runner:
   _target_: fairchem.core.components.train.train_runner.TrainEvalRunner

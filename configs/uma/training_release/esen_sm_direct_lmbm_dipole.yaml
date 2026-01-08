@@ -1,7 +1,7 @@
 defaults:
   - cluster: one
   - backbone: K4L2
-  - dataset: custom_lmdb # custom_xyz
+  - dataset: custom_lmdb_dipole
   - tasks: custom_energy_dipole
   - _self_
   - lrs: cosine

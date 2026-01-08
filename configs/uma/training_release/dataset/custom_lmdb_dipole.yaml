@@ -3,7 +3,7 @@ snapshot_dir: custom_dataset_root
 custom_train:
   splits:
     train:
-      src: ${dataset.data_path}/train/qm7_train.lmdb
+      src: ${dataset.data_path}/train/qm7_dipole_train.lmdb
       first_n: null  # Set to limit number of samples (e.g., 100)
   format: lmdb
   transforms:
@@ -13,7 +13,7 @@ custom_train:
 custom_val:
   splits:
     val:
-      src: ${dataset.data_path}/val/qm7_validation.lmdb
+      src: ${dataset.data_path}/val/qm7_dipole_validation.lmdb
   format: lmdb
   transforms:
     common_transform:
