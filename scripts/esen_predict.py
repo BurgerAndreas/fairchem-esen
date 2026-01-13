@@ -59,15 +59,45 @@ def main() -> None:
 
     checkpoint_path = args.checkpoint
 
-    # if checkpoint path is a directory, find latest step checkpoint
-    # /scratch/aburger/checkpoint/uma/202512-1717-3450-f34f/checkpoints
+    # If checkpoint path is a directory, resolve to a concrete inference checkpoint.
+    # Supported inputs:
+    # - /.../checkpoints                    (contains step_* and/or final/)
+    # - /.../checkpoints/step_XXXX          (contains resume.yaml + inference_ckpt.pt)
+    # - /.../checkpoints/final             (contains resume.yaml + inference_ckpt.pt)
+    # - /.../checkpoints/step_XXXX/*.pt     (direct .pt file)
     if checkpoint_path.is_dir():
-        # get latest checkpoint dir
-        checkpoint_dir = list(checkpoint_path.glob("step_*"))[-1]
-        # get checkpoint file
-        checkpoint_path = list(checkpoint_dir.glob("*.pt"))[-1]
+        checkpoint_root = checkpoint_path
+
+        # If user passed ".../checkpoints", prefer the final checkpoint if it exists.
+        candidate_dirs: list[Path] = []
+        final_dir = checkpoint_root / "final"
+        if final_dir.is_dir():
+            candidate_dirs = [final_dir]
+        else:
+            step_dirs = sorted(
+                (p for p in checkpoint_root.glob("step_*") if p.is_dir()),
+                key=lambda p: int(p.name.split("_", 1)[1]) if "_" in p.name else -1,
+            )
+            if step_dirs:
+                candidate_dirs = [step_dirs[-1]]
+            else:
+                # Might already be a specific checkpoint directory (e.g., step_*/final).
+                candidate_dirs = [checkpoint_root]
+
+        checkpoint_dir = candidate_dirs[0]
+        inference_ckpt = checkpoint_dir / "inference_ckpt.pt"
+        if inference_ckpt.exists():
+            checkpoint_path = inference_ckpt
+        else:
+            pt_files = sorted(checkpoint_dir.glob("*.pt"))
+            if not pt_files:
+                raise FileNotFoundError(
+                    f"No .pt checkpoint found under {checkpoint_dir} (expected inference_ckpt.pt)"
+                )
+            checkpoint_path = pt_files[-1]
     else:
         checkpoint_dir = checkpoint_path.parent
+
     checkpoint_path = checkpoint_path.resolve()
 
     if not checkpoint_path.exists():
@@ -80,7 +110,7 @@ def main() -> None:
     )
     
     # get training config
-    with open(checkpoint_dir / "resume.yaml", 'r') as f:
+    with open(checkpoint_dir / "resume.yaml", "r") as f:
         training_config = yaml.safe_load(f)
     
     # Initialize wandb

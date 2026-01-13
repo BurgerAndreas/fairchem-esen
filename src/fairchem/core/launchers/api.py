@@ -122,6 +122,16 @@ class Metadata:
 
 
 @dataclass
+class PostTrainEvalConfig:
+    enabled: bool = False
+    # Path to a python script to execute after training completes successfully.
+    # It will be invoked as: python <script> --checkpoint <job.metadata.checkpoint_dir>
+    script: str = "scripts/esen_predict.py"
+    wandb_project: Optional[str] = None
+    wandb_run_name: Optional[str] = None
+
+
+@dataclass
 class JobConfig:
     run_name: str = field(
         default_factory=lambda: get_timestamp_uid() + uuid.uuid4().hex.upper()[0:4]
@@ -146,6 +156,9 @@ class JobConfig:
         None  # omegaconf in python 3.9 does not backport annotations
     )
     graph_parallel_group_size: Optional[int] = None
+    post_train_eval: PostTrainEvalConfig = field(
+        default_factory=lambda: PostTrainEvalConfig()
+    )
 
     def __post_init__(self) -> None:
         self.run_dir = os.path.abspath(self.run_dir)

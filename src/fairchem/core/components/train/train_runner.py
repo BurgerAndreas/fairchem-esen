@@ -10,6 +10,8 @@ from __future__ import annotations
 import logging
 import os
 import shutil
+import subprocess
+import sys
 from typing import TYPE_CHECKING, Optional, Protocol, Union, runtime_checkable
 
 from torchtnt.framework.callback import Callback
@@ -168,6 +170,22 @@ class TrainEvalRunner(Runner):
             evaluate_every_n_steps=self.evaluate_every_n_steps,
             evaluate_every_n_epochs=self.evaluate_every_n_epochs,
         )
+
+        # Optional post-train evaluation hook (runs on master rank only).
+        post_cfg = getattr(self.job_config, "post_train_eval", None)
+        if post_cfg and getattr(post_cfg, "enabled", False) and distutils.is_master():
+            checkpoint_dir = self.job_config.metadata.checkpoint_dir
+            cmd = [sys.executable, post_cfg.script, "--checkpoint", checkpoint_dir]
+            if getattr(post_cfg, "wandb_project", None):
+                cmd += ["--wandb-project", post_cfg.wandb_project]
+            if getattr(post_cfg, "wandb_run_name", None):
+                cmd += ["--wandb-run-name", post_cfg.wandb_run_name]
+            logging.info(f"Running post-train eval: {' '.join(cmd)}")
+            completed = subprocess.run(cmd)
+            if completed.returncode != 0:
+                logging.error(
+                    f"Post-train eval failed with exit code {completed.returncode}"
+                )
 
     def save_state(self, checkpoint_location: str, is_preemption: bool = False) -> bool:
         # in the case of preemption, don't attempt to save a new checkpoint but try to move an existing to the checkpoint_location
