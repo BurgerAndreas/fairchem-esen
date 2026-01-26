@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import numpy as np
 import pandas as pd
@@ -101,9 +101,11 @@ def main() -> None:
     else:
         checkpoint_dir = checkpoint_path.parent
 
-    checkpoint_path = checkpoint_path.resolve()
+    checkpoint_path: PosixPath = checkpoint_path.resolve()
     print(f"Checkpoint path: {checkpoint_path}")
-    _run_name = checkpoint_path.split("/")[-4]
+    _run_name = str(checkpoint_path).split("/")[-4]
+
+    base_output_path = Path("predictions") / _run_name
 
 
     if not checkpoint_path.exists():
@@ -172,7 +174,7 @@ def main() -> None:
 
         df = pd.DataFrame(rows)
 
-        output_path = Path("predictions") / f"{name}_esen.csv"
+        output_path = base_output_path / f"{name}_esen.csv"
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output_path, index=False)
         print(f"Predictions saved to {output_path}")
@@ -220,7 +222,7 @@ def main() -> None:
 
     # Write combined CSV
     combined_df = pd.DataFrame(combined_rows, columns=["dataset", "molecule_index", "chemical_formula", "ref_energy", "mace_energy", "error"])
-    combined_output_path = Path("predictions/combined_esen.csv")
+    combined_output_path = base_output_path / "combined_esen.csv"
     combined_output_path.parent.mkdir(parents=True, exist_ok=True)
     combined_df.to_csv(combined_output_path, index=False)
     print(f"\nCombined predictions saved to {combined_output_path}")
