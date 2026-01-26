@@ -54,7 +54,11 @@ def main() -> None:
         "pubchem": Path("data/pubchem.xyz"),
         "stretching_mol": Path("data/stretching_mol.xyz"),
         "dihedral_scan": Path("data/dihedral_scan.xyz"),
-        
+        "stretching_meth_ch.xyz": Path("data/stretching_meth_ch.xyz"),
+        "stretching_meth_co.xyz": Path("data/stretching_meth_co.xyz"),
+        "stretching_meth_oh.xyz": Path("data/stretching_meth_oh.xyz"),
+        "diels_alder.xyz": Path("data/diels_alder.xyz"),
+        "chair_to_boat.xyz": Path("data/chair_to_boat.xyz"),
     }
 
     checkpoint_path = args.checkpoint
@@ -130,6 +134,8 @@ def main() -> None:
         for suffix in metric_suffixes:
             wandb.define_metric(f"{dataset_name}/{suffix}", summary="min")
 
+    combined_rows = []  # For combined CSV
+
     summary_str = ""
     for name, xyz_path in datasets.items():
         print(f"\n# Predicting {name}.")
@@ -139,15 +145,23 @@ def main() -> None:
         for idx, atoms in enumerate(atoms_list):
             atoms.calc = calc
             energy = atoms.get_potential_energy()
-            n_atoms = len(atoms)
             symbols = "".join(atoms.get_chemical_symbols())
-
             ref_energy = atoms.info.get("REF_energy", np.nan)
+
+            # for dataset,molecule_index,chemical_formula,ref_energy,mace_energy,error
+            combined_rows.append({
+                "dataset": name,
+                "molecule_index": idx,
+                "chemical_formula": symbols,
+                "ref_energy": ref_energy,
+                "mace_energy": float(energy),
+                "error": float(energy) - float(ref_energy) if not np.isnan(ref_energy) else np.nan,
+            })
 
             rows.append(
                 {
                     "index": idx,
-                    "n_atoms": n_atoms,
+                    "n_atoms": len(atoms),
                     "symbols": symbols,
                     "REF_energy": ref_energy,
                     "ESEN_energy": float(energy),
@@ -201,6 +215,13 @@ def main() -> None:
             _metrics_str = f"Warning: No reference energies found for {name}, skipping metrics"
             summary_str += _metrics_str + "\n"
         print(_metrics_str)
+
+    # Write combined CSV
+    combined_df = pd.DataFrame(combined_rows, columns=["dataset", "molecule_index", "chemical_formula", "ref_energy", "mace_energy", "error"])
+    combined_output_path = Path("data/predictions_combined_esen.csv")
+    combined_output_path.parent.mkdir(parents=True, exist_ok=True)
+    combined_df.to_csv(combined_output_path, index=False)
+    print(f"\nCombined predictions saved to {combined_output_path}")
 
     print("")
     print(summary_str)
