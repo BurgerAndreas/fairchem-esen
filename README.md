@@ -107,7 +107,11 @@ We test on amino_acids.xyz, alcohols.xyz, alkanes.xyz, and pubchem.xyz, bond_str
 Generate predictions and store to disk as csv
 ```bash
 uv run scripts/esen_predict.py --checkpoint /scratch/aburger/checkpoint/uma/202512-1802-3934-ed7c/checkpoints
-sbatch scripts/killarney.sh scripts/esen_predict.py --checkpoint ...
+sbatch --time=1:00:00 scripts/killarney.sh scripts/esen_predict.py --checkpoint /scratch/aburger/checkpoint/uma/202601-0803-5744-1f28/checkpoints
+sbatch --time=1:00:00 scripts/killarney.sh scripts/esen_predict.py --checkpoint /scratch/aburger/checkpoint/uma/202512-2814-5932-8a0e/checkpoints
+
+
+
 ```
 
 

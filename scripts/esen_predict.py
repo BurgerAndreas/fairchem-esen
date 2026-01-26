@@ -19,8 +19,7 @@ uv run scripts/esen_predict.py --checkpoint /scratch/aburger/checkpoint/uma/2025
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run eSEN / UMA energy predictions on fixed XYZ test sets "
-            " and save CSV files."
+            "Run eSEN / UMA energy predictions on fixed XYZ test sets and save CSV files."
         )
     )
     parser.add_argument(
@@ -32,7 +31,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--wandb-project",
         type=str,
-        default="esen-predictions",
+        default="esen-lmbm",
         help="Wandb project name.",
     )
     parser.add_argument(
@@ -103,6 +102,9 @@ def main() -> None:
         checkpoint_dir = checkpoint_path.parent
 
     checkpoint_path = checkpoint_path.resolve()
+    print(f"Checkpoint path: {checkpoint_path}")
+    _run_name = checkpoint_path.split("/")[-4]
+
 
     if not checkpoint_path.exists():
         raise FileNotFoundError(f"Checkpoint file {checkpoint_path} does not exist")
@@ -170,7 +172,7 @@ def main() -> None:
 
         df = pd.DataFrame(rows)
 
-        output_path = Path("data") / f"predictions_{name}_esen.csv"
+        output_path = Path("predictions") / f"{name}_esen.csv"
         output_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(output_path, index=False)
         print(f"Predictions saved to {output_path}")
@@ -218,7 +220,7 @@ def main() -> None:
 
     # Write combined CSV
     combined_df = pd.DataFrame(combined_rows, columns=["dataset", "molecule_index", "chemical_formula", "ref_energy", "mace_energy", "error"])
-    combined_output_path = Path("data/predictions_combined_esen.csv")
+    combined_output_path = Path("predictions/combined_esen.csv")
     combined_output_path.parent.mkdir(parents=True, exist_ok=True)
     combined_df.to_csv(combined_output_path, index=False)
     print(f"\nCombined predictions saved to {combined_output_path}")

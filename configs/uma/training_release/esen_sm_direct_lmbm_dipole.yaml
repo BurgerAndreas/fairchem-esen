@@ -44,7 +44,7 @@ job:
     _target_: fairchem.core.common.logger.WandBSingletonLogger.init_wandb
     _partial_: true
     entity: andreas-burger
-    project: uma_custom
+    project: esen-lmbm
     wandb_dir: /scratch/aburger/wandb
 
 moe_layer_type: pytorch
